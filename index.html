@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Marketplace Local</title>
+  <link rel="stylesheet" href="css/inicio.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <h1>Marketplace Local</h1>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar productos...">
+      <button onclick="buscarProducto()">🔍</button>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#">Inicio</a></li>
+        <li><a href="#">Productos</a></li>
+        <li><a href="#">Vendedores</a></li>
+        <li><a href="#">Carrito</a></li>
+        <li><a href="#">Mi Cuenta</a></li>
+        <li><a href="#">Ayuda</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+ <section class="carousel">
+  <h2>Promociones destacadas</h2>
+  <div class="carousel-wrapper">
+    <div class="carousel-container" id="carousel">
+      <div class="promo-card">
+        <img src="resources/ima1.png" alt="Promo 1">
+        <h3>Camisa en oferta</h3>
+        <p>$12.00</p>
+      </div>
+      <div class="promo-card">
+        <img src="resources/ima2.png" alt="Promo 2">
+        <h3>Zapatos deportivos</h3>
+        <p>$35.00</p>
+      </div>
+      <div class="promo-card">
+        <img src="resources/ima3.png" alt="Promo 3">
+        <h3>Bolso artesanal</h3>
+        <p>$20.00</p>
+      </div>
+      <div class="promo-card">
+        <img src="resources/ima4.png" alt="Promo 4">
+        <h3>Collar de plata</h3>
+        <p>$18.00</p>
+      </div>
+    </div>
+    <button class="nav-btn" id="prev">◀</button>
+    <button class="nav-btn" id="next">▶</button>
+  </div>
+</section>
+
+
+    <section class="feed">
+  <h2>Productos recientes</h2>
+  <div class="product-grid">
+    <div class="product-card">
+      <img src="resources/ima4.png" alt="Camisa azul">
+      <h3>Camisa azul</h3>
+      <p>$15.00</p>
+    </div>
+    <div class="product-card">
+      <img src="resources/ima5.png" alt="Zapatos deportivos">
+      <h3>Zapatos deportivos</h3>
+      <p>$40.00</p>
+    </div>
+    <div class="product-card">
+      <img src="resources/ima1.png" alt="Bolso artesanal">
+      <h3>Bolso artesanal</h3>
+      <p>$25.00</p>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <footer>
+    <p>Marketplace Local © 2026 | Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    function buscarProducto() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const items = document.querySelectorAll("#productList li");
+
+      items.forEach(item => {
+        if (item.textContent.toLowerCase().includes(input)) {
+          item.style.display = "list-item";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+     let currentIndex = 0;
+
+  function showSlide(index) {
+    const slides = document.querySelectorAll(".promo-card");
+    const totalSlides = slides.length;
+
+    if (index >= totalSlides) {
+      currentIndex = 0;
+    } else if (index < 0) {
+      currentIndex = totalSlides - 1;
+    } else {
+      currentIndex = index;
+    }
+
+    const offset = -currentIndex * 100;
+    document.getElementById("carousel").style.transform = `translateX(${offset}%)`;
+  }
+
+  function autoSlide() {
+    showSlide(currentIndex + 1);
+  }
+
+  document.getElementById("next").addEventListener("click", () => showSlide(currentIndex + 1));
+  document.getElementById("prev").addEventListener("click", () => showSlide(currentIndex - 1));
+
+  setInterval(autoSlide, 3000); // cambia cada 3 segundos
+  </script>
+</body>
+</html>
