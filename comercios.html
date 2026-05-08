@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Explorar Productos - Marketplace Local</title>
+  <title>Comercios - Marketplace Local</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -17,8 +17,8 @@
         </div>
         
         <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="Buscar productos...">
-          <button onclick="searchProducts()">🔍</button>
+          <input type="text" id="searchInput" placeholder="Buscar comercios...">
+          <button onclick="searchStores()">🔍</button>
         </div>
         
         <div class="header-actions">
@@ -45,8 +45,8 @@
       
       <nav>
         <a href="index.html" class="nav-link">Inicio</a>
-        <a href="productos.html" class="nav-link active">Explorar</a>
-        <a href="comercios.html" class="nav-link">Comercios</a>
+        <a href="productos.html" class="nav-link">Explorar</a>
+        <a href="comercios.html" class="nav-link active">Comercios</a>
         <a href="carrito.html" class="nav-link">Carrito</a>
         <a href="acercaDe.html" class="nav-link">Acerca de</a>
       </nav>
@@ -55,71 +55,40 @@
 
   <!-- MAIN CONTENT -->
   <main class="main-container">
-    <h1 style="margin-bottom: 30px; color: #333;">Explorar Productos</h1>
+    <h1 style="margin-bottom: 30px; color: #333;">Nuestros Comercios</h1>
 
-    <!-- FILTROS AVANZADOS -->
-    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-bottom: 40px;">
-      <!-- SIDEBAR FILTROS -->
-      <aside style="background: white; padding: 20px; border-radius: 8px; height: fit-content; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">Filtros</h3>
-
-        <div class="filter-group">
-          <label for="filterCategory">📁 Categoría</label>
-          <select id="filterCategory" onchange="applyFilters()">
-            <option value="">Todas las categorías</option>
-            <option value="Accesorios">Accesorios</option>
-            <option value="Ropa">Ropa</option>
-            <option value="Alimentos">Alimentos</option>
-            <option value="Electrónica">Electrónica</option>
-            <option value="Hogar">Hogar</option>
-            <option value="Belleza">Belleza</option>
-          </select>
-        </div>
-
+    <!-- FILTROS -->
+    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div class="filters-grid">
         <div class="filter-group">
           <label for="filterLocation">📍 Ubicación</label>
-          <input type="text" id="filterLocation" placeholder="Buscar por ubicación..." onchange="applyFilters()">
+          <input type="text" id="filterLocation" placeholder="Buscar por ubicación...">
         </div>
-
-        <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
-          <label style="display: block; margin-bottom: 10px; font-weight: 600;">💰 Rango de Precio</label>
-          <input type="range" id="filterPrice" min="0" max="1000" value="1000" style="width: 100%; margin-bottom: 10px;" onchange="applyFilters()">
-          <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #666;">
-            <span>$0</span>
-            <span id="priceDisplay">$1000</span>
-          </div>
-        </div>
-
-        <div class="filter-group" style="margin-top: 15px;">
-          <label for="filterRating">⭐ Calificación Mínima</label>
-          <select id="filterRating" onchange="applyFilters()">
+        <div class="filter-group">
+          <label for="filterRating">⭐ Calificación</label>
+          <select id="filterRating">
             <option value="">Todas</option>
             <option value="4.5">4.5 y superior</option>
             <option value="4">4.0 y superior</option>
-            <option value="3.5">3.5 y superior</option>
           </select>
         </div>
-
-        <button class="btn btn-secondary btn-block" style="margin-top: 15px;" onclick="resetFilters()">Limpiar Filtros</button>
-      </aside>
-
-      <!-- GRID DE PRODUCTOS -->
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <div id="resultCount" style="color: #666;">Mostrando todos los productos</div>
-          <select id="sortBy" onchange="applyFilters()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
-            <option value="relevancia">Ordenar por: Relevancia</option>
-            <option value="precio-asc">Precio: Menor a Mayor</option>
-            <option value="precio-desc">Precio: Mayor a Menor</option>
+        <div class="filter-group">
+          <label for="sortBy">Ordenar por</label>
+          <select id="sortBy">
+            <option value="nombre">Nombre (A-Z)</option>
             <option value="rating">Mejor Calificados</option>
-            <option value="vendidos">Más Vendidos</option>
+            <option value="productos">Más Productos</option>
           </select>
         </div>
-
-        <div class="products-grid" id="productsContainer">
-          <!-- Se llena con JavaScript -->
+        <div class="filter-group" style="justify-content: flex-end;">
+          <button class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
         </div>
       </div>
+    </div>
+
+    <!-- GRID DE COMERCIOS -->
+    <div class="store-grid" id="storesContainer">
+      <!-- Se llena con JavaScript -->
     </div>
   </main>
 
@@ -164,34 +133,27 @@
 
   <script src="js/app.js"></script>
   <script>
-    // Actualizar display del precio
-    document.getElementById('filterPrice').addEventListener('input', function() {
-      document.getElementById('priceDisplay').textContent = '$' + this.value;
-    });
-
-    // Crear tarjeta de producto
-    function createProductCard(product) {
-      const comercio = MarketplaceApp.getComercioById(product.comercioId);
+    // Crear tarjeta de comercio
+    function createStoreCard(store) {
+      const products = MarketplaceApp.getProductosByComercio(store.id);
       return `
-        <div class="product-card" onclick="goToProductDetail(${product.id})">
-          <img src="${product.foto}" alt="${product.nombre}" class="product-image">
-          <div class="product-info">
-            <div class="product-category">${product.categoria}</div>
-            <h3 class="product-name">${product.nombre}</h3>
-            <div class="product-store">🏪 ${comercio.nombre}</div>
-            <div class="product-description">${product.descripcion}</div>
-            <div class="product-footer">
-              <div class="product-price">$${product.precio.toFixed(2)}</div>
-              <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
-            </div>
+        <div class="store-card" onclick="goToStore(${store.id})">
+          <div class="store-banner">🏪</div>
+          <div class="store-info">
+            <h3 class="store-name">${store.nombre}</h3>
+            <div class="store-location">📍 ${store.ubicacion}</div>
+            <p class="store-description">${store.descripcion}</p>
+            <div class="store-rating">⭐ ${store.rating} <span>(${products.length} productos)</span></div>
+            <div class="store-contact">📧 ${store.email}</div>
+            <button class="btn btn-primary btn-small btn-block" onclick="goToStore(${store.id}); event.stopPropagation();">Ver Tienda</button>
           </div>
         </div>
       `;
     }
 
-    // Ir a detalle del producto
-    function goToProductDetail(productId) {
-      window.location.href = `detalle-producto.html?id=${productId}`;
+    // Ir a la tienda
+    function goToStore(storeId) {
+      window.location.href = `tienda.html?id=${storeId}`;
     }
 
     // Ir al carrito
@@ -261,69 +223,56 @@
     // Aplicar filtros
     function applyFilters() {
       const query = document.getElementById('searchInput').value;
-      const category = document.getElementById('filterCategory').value;
       const location = document.getElementById('filterLocation').value;
-      const price = parseFloat(document.getElementById('filterPrice').value);
       const minRating = document.getElementById('filterRating').value ? parseFloat(document.getElementById('filterRating').value) : 0;
       const sortBy = document.getElementById('sortBy').value;
 
-      let filtros = {
-        categoria: category,
-        ubicacion: location,
-        precioMax: price,
-        precioMin: 0
-      };
+      let results = MarketplaceApp.comercios;
 
-      let results = MarketplaceApp.searchProducts(query, filtros);
+      // Filtrar por búsqueda
+      if (query) {
+        const q = query.toLowerCase();
+        results = results.filter(s => s.nombre.toLowerCase().includes(q));
+      }
 
-      // Filtrar por rating
+      // Filtrar por ubicación
+      if (location) {
+        results = results.filter(s => s.ubicacion.toLowerCase().includes(location.toLowerCase()));
+      }
+
+      // Filtrar por calificación
       if (minRating > 0) {
-        results = results.filter(p => p.rating >= minRating);
+        results = results.filter(s => s.rating >= minRating);
       }
 
       // Ordenar
       switch(sortBy) {
-        case 'precio-asc':
-          results.sort((a, b) => a.precio - b.precio);
-          break;
-        case 'precio-desc':
-          results.sort((a, b) => b.precio - a.precio);
+        case 'nombre':
+          results.sort((a, b) => a.nombre.localeCompare(b.nombre));
           break;
         case 'rating':
           results.sort((a, b) => b.rating - a.rating);
           break;
-        case 'vendidos':
-          results.sort((a, b) => b.vendidos - a.vendidos);
+        case 'productos':
+          results.sort((a, b) => {
+            const prodA = MarketplaceApp.getProductosByComercio(a.id).length;
+            const prodB = MarketplaceApp.getProductosByComercio(b.id).length;
+            return prodB - prodA;
+          });
           break;
       }
 
       // Mostrar resultados
-      const container = document.getElementById('productsContainer');
-      const countDiv = document.getElementById('resultCount');
-
+      const container = document.getElementById('storesContainer');
       if (results.length === 0) {
-        container.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No se encontraron productos que coincidan con los filtros</p>';
-        countDiv.textContent = 'No se encontraron resultados';
+        container.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No se encontraron comercios</p>';
       } else {
-        container.innerHTML = results.map(p => createProductCard(p)).join('');
-        countDiv.textContent = `Mostrando ${results.length} producto${results.length !== 1 ? 's' : ''}`;
+        container.innerHTML = results.map(s => createStoreCard(s)).join('');
       }
     }
 
-    // Buscar productos
-    function searchProducts() {
-      applyFilters();
-    }
-
-    // Limpiar filtros
-    function resetFilters() {
-      document.getElementById('searchInput').value = '';
-      document.getElementById('filterCategory').value = '';
-      document.getElementById('filterLocation').value = '';
-      document.getElementById('filterPrice').value = '1000';
-      document.getElementById('filterRating').value = '';
-      document.getElementById('sortBy').value = 'relevancia';
-      document.getElementById('priceDisplay').textContent = '$1000';
+    // Buscar comercios
+    function searchStores() {
       applyFilters();
     }
 
@@ -333,12 +282,16 @@
       updateCartBadge();
       applyFilters();
 
-      // Event listener para búsqueda
+      // Event listeners
       document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-          searchProducts();
+          searchStores();
         }
       });
+
+      document.getElementById('filterLocation').addEventListener('change', applyFilters);
+      document.getElementById('filterRating').addEventListener('change', applyFilters);
+      document.getElementById('sortBy').addEventListener('change', applyFilters);
 
       // Cerrar dropdown al hacer click afuera
       document.addEventListener('click', function(e) {

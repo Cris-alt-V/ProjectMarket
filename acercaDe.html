@@ -2,67 +2,493 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Marketplace Local</title>
-  <link rel="stylesheet" href="css/acercade.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acerca de - Marketplace Local</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .section-hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 60px;
+    }
+
+    .section-hero h1 {
+      margin: 0 0 20px 0;
+      font-size: 2.5em;
+    }
+
+    .section-hero p {
+      margin: 0;
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+    }
+
+    .feature-card h3 {
+      margin: 15px 0;
+      color: #333;
+    }
+
+    .feature-card p {
+      color: #666;
+      margin: 0;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+
+    .team-member {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .team-member-image {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4em;
+    }
+
+    .team-member-info {
+      padding: 20px;
+    }
+
+    .team-member h4 {
+      margin: 0 0 5px 0;
+      color: #333;
+    }
+
+    .team-member p {
+      margin: 0;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      margin-bottom: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5em;
+      color: #667eea;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 1.1em;
+    }
+
+    .cta-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 60px 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .cta-section h2 {
+      margin: 0 0 20px 0;
+    }
+
+    .cta-section p {
+      margin: 0 0 30px 0;
+      font-size: 1.1em;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .section-hero h1 {
+        font-size: 1.8em;
+      }
+
+      .cta-section {
+        padding: 40px 20px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- HEADER -->
   <header>
-    <div class="logo">
-      <h1>Marketplace Local</h1>
+    <div class="header-container">
+      <div class="header-top">
+        <div class="logo">
+          <span class="icon">🏪</span>
+          <h1>Marketplace Local</h1>
+        </div>
+        
+        <div class="logo" style="flex: 1;"></div>
+        
+        <div class="header-actions">
+          <div class="cart-badge" onclick="goToCart()">
+            🛒
+            <span class="badge" id="cartBadge" style="display: none;">0</span>
+          </div>
+          
+          <div class="user-menu">
+            <div class="user-info" onclick="toggleUserMenu()">
+              <span id="userDisplay">👤</span>
+              <span id="userName">Iniciar</span>
+            </div>
+            <div class="dropdown-menu" id="userMenu">
+              <a href="registro.html" id="loginLink">Iniciar Sesión</a>
+              <a href="registro.html?tab=register" id="registerLink">Registrarse</a>
+              <a href="micuenta.html" id="accountLink" style="display: none;">Mi Cuenta</a>
+              <a href="mis-comercios.html" id="storesLink" style="display: none;">Mis Comercios</a>
+              <button onclick="logout()" id="logoutBtn" style="display: none;">Cerrar Sesión</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <nav>
+        <a href="index.html" class="nav-link">Inicio</a>
+        <a href="productos.html" class="nav-link">Explorar</a>
+        <a href="comercios.html" class="nav-link">Comercios</a>
+        <a href="carrito.html" class="nav-link">Carrito</a>
+        <a href="acercaDe.html" class="nav-link active">Acerca de</a>
+      </nav>
     </div>
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Buscar productos...">
-      <button onclick="buscarProducto()">🔍</button>
-    </div>
-    <nav>
-      <ul>
-        <li><a href="#">Inicio</a></li>
-        <li><a href="#">Productos</a></li>
-        <li><a href="#">Vendedores</a></li>
-        <li><a href="#">Carrito</a></li>
-        <li><a href="#">Mi Cuenta</a></li>
-        <li><a href="#">Ayuda</a></li>
-      </ul>
-    </nav>
   </header>
 
-  <main>
-    <section class="about">
-      <h2>Acerca de</h2>
+  <!-- MAIN CONTENT -->
+  <main class="main-container">
+    <!-- HERO SECTION -->
+    <section class="section-hero">
+      <h1>Marketplace Local</h1>
+      <p>Conectando comercios locales con su comunidad</p>
+    </section>
 
-      <div class="about-section">
-        <h3>Justificación del proyecto</h3>
-        <p>
-          Marketplace Local surge como respuesta a la necesidad de contar con un espacio 
-          digital que conecte a compradores y vendedores de la comunidad. La plataforma 
-          busca fortalecer la economía local y ofrecer un entorno seguro y accesible 
-          para el comercio electrónico.
-        </p>
+    <!-- SOBRE NOSOTROS -->
+    <section style="margin-bottom: 60px;">
+      <h2 style="font-size: 2em; margin-bottom: 20px; color: #333;">Nuestra Misión</h2>
+      <p style="font-size: 1.1em; color: #666; line-height: 1.8; max-width: 800px;">
+        En Marketplace Local, creemos en el poder de los pequeños negocios locales. Nuestra plataforma fue creada para 
+        ayudar a comercios de todas las tamaños a conectar con sus clientes, promover sus productos y crecer en su comunidad. 
+        Nos enorgullece proporcionar una solución simple, efectiva y accesible para que los negocios locales prosperen en la era digital.
+      </p>
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+    <section style="margin-bottom: 60px;">
+      <h2 style="font-size: 2em; margin-bottom: 30px; color: #333;">¿Por qué elegirnos?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Plataforma Intuitiva</h3>
+          <p>Interfaz simple y fácil de usar para compradores y vendedores</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <h3>Búsqueda Avanzada</h3>
+          <p>Encuentra exactamente lo que necesitas con filtros por categoría y ubicación</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏪</div>
+          <h3>Apoyo a Comercios Locales</h3>
+          <p>Herramientas diseñadas para que los pequeños negocios prosperen</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Comunicación Directa</h3>
+          <p>Conecta directamente con los comercios para consultas y negociaciones</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3>Alcance Comunitario</h3>
+          <p>Lleva tu negocio local a más personas en tu área</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Seguro y Confiable</h3>
+          <p>Transacciones seguras y protección para comprador y vendedor</p>
+        </div>
       </div>
+    </section>
 
-      <div class="about-section">
-        <h3>Misión y visión del marketplace</h3>
-        <p><strong>Misión:</strong> Facilitar el intercambio de productos y servicios 
-          entre usuarios locales, promoviendo la confianza y la accesibilidad.</p>
-        <p><strong>Visión:</strong> Convertirse en el principal punto de encuentro 
-          digital para la comunidad, impulsando el crecimiento de emprendedores y 
-          negocios locales.</p>
+    <!-- ESTADÍSTICAS -->
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-number">3+</div>
+        <div class="stat-label">Comercios Locales</div>
       </div>
+      <div class="stat">
+        <div class="stat-number">6+</div>
+        <div class="stat-label">Productos Disponibles</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">5</div>
+        <div class="stat-label">Categorías</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Satisfacción</div>
+      </div>
+    </section>
 
-      <div class="about-section">
-        <h3>Información del equipo desarrollador</h3>
-        <p>
-          Este proyecto ha sido desarrollado por un equipo multidisciplinario de 
-          estudiantes y profesionales apasionados por la tecnología, el diseño y la 
-          innovación. Nuestro compromiso es crear soluciones digitales que aporten 
-          valor a la comunidad.
-        </p>
+    <!-- EQUIPO -->
+    <section style="margin-bottom: 60px;">
+      <h2 style="font-size: 2em; margin-bottom: 30px; color: #333;">Nuestro Equipo</h2>
+      <div class="team-grid">
+        <div class="team-member">
+          <div class="team-member-image">👨‍💼</div>
+          <div class="team-member-info">
+            <h4>Juan Pérez</h4>
+            <p>Fundador y CEO</p>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-image">👩‍💼</div>
+          <div class="team-member-info">
+            <h4>María García</h4>
+            <p>Directora de Operaciones</p>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-image">👨‍💻</div>
+          <div class="team-member-info">
+            <h4>Carlos López</h4>
+            <p>Lead Developer</p>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-image">👩‍💻</div>
+          <div class="team-member-info">
+            <h4>Ana Martínez</h4>
+            <p>Especialista en UX/UI</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VALORES -->
+    <section style="margin-bottom: 60px;">
+      <h2 style="font-size: 2em; margin-bottom: 30px; color: #333;">Nuestros Valores</h2>
+      <div class="features-grid">
+        <div class="feature-card" style="background: #f8f8f8;">
+          <h3>Comunidad</h3>
+          <p>Creemos en construir comunidades fuertes donde los negocios locales prosperen juntos</p>
+        </div>
+        <div class="feature-card" style="background: #f8f8f8;">
+          <h3>Transparencia</h3>
+          <p>Operamos con total transparencia para ganarnos tu confianza</p>
+        </div>
+        <div class="feature-card" style="background: #f8f8f8;">
+          <h3>Innovación</h3>
+          <p>Continuamente mejoramos para ofrecerte la mejor experiencia</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta-section">
+      <h2>¿Listo para comenzar?</h2>
+      <p>Únete a nuestros comercios y clientes satisfechos</p>
+      <div class="cta-buttons">
+        <a href="index.html" class="btn btn-primary">Explorar Productos</a>
+        <a href="registro.html?tab=store" class="btn btn-secondary" style="background: white; color: #667eea;">Registrar Comercio</a>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section style="margin-top: 60px; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <h2 style="margin-top: 0; color: #333; font-size: 1.5em;">Contáctanos</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+        <div>
+          <h4 style="margin-top: 0; color: #667eea;">📧 Email</h4>
+          <p><a href="mailto:info@marketplace.local" style="color: #667eea;">info@marketplace.local</a></p>
+        </div>
+        <div>
+          <h4 style="margin-top: 0; color: #667eea;">📞 Teléfono</h4>
+          <p><a href="tel:+555-123-4567" style="color: #667eea;">(555) 123-4567</a></p>
+        </div>
+        <div>
+          <h4 style="margin-top: 0; color: #667eea;">📍 Ubicación</h4>
+          <p>Tu Ciudad, País</p>
+        </div>
       </div>
     </section>
   </main>
 
+  <!-- FOOTER -->
   <footer>
-    <p>© 2026 Marketplace Local - Todos los derechos reservados</p>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h3>Sobre Nosotros</h3>
+        <p>Marketplace Local es una plataforma dedicada a conectar comercios locales con clientes de su comunidad.</p>
+      </div>
+      <div class="footer-section">
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="productos.html">Explorar Productos</a></li>
+          <li><a href="comercios.html">Ver Comercios</a></li>
+          <li><a href="acercaDe.html">Acerca de</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Para Vendedores</h3>
+        <ul>
+          <li><a href="registro.html?tab=store">Registrar Comercio</a></li>
+          <li><a href="mis-comercios.html">Gestionar Productos</a></li>
+          <li><a href="#">Centro de Ayuda</a></li>
+          <li><a href="#">Políticas</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Contacto</h3>
+        <ul>
+          <li>📧 info@marketplace.local</li>
+          <li>📞 (555) 123-4567</li>
+          <li>📍 Tu Ciudad, País</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Marketplace Local. Todos los derechos reservados.</p>
+    </div>
   </footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Ir al carrito
+    function goToCart() {
+      window.location.href = 'carrito.html';
+    }
+
+    // Toggle user menu
+    function toggleUserMenu() {
+      const menu = document.getElementById('userMenu');
+      menu.classList.toggle('active');
+    }
+
+    // Cerrar sesión
+    function logout() {
+      MarketplaceApp.setCurrentUser(null);
+      updateUserDisplay();
+      toggleUserMenu();
+      MarketplaceApp.showNotification('Sesión cerrada');
+    }
+
+    // Actualizar display del usuario
+    function updateUserDisplay() {
+      const user = MarketplaceApp.getCurrentUser();
+      const userDisplay = document.getElementById('userDisplay');
+      const userName = document.getElementById('userName');
+      const loginLink = document.getElementById('loginLink');
+      const registerLink = document.getElementById('registerLink');
+      const accountLink = document.getElementById('accountLink');
+      const storesLink = document.getElementById('storesLink');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      if (user) {
+        userDisplay.textContent = '👤';
+        userName.textContent = user.nombre;
+        loginLink.style.display = 'none';
+        registerLink.style.display = 'none';
+        accountLink.style.display = 'block';
+        logoutBtn.style.display = 'block';
+        
+        if (user.tipo === 'comercio') {
+          storesLink.style.display = 'block';
+        }
+      } else {
+        userDisplay.textContent = '👤';
+        userName.textContent = 'Iniciar';
+        loginLink.style.display = 'block';
+        registerLink.style.display = 'block';
+        accountLink.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        storesLink.style.display = 'none';
+      }
+    }
+
+    // Actualizar badge del carrito
+    function updateCartBadge() {
+      const cart = MarketplaceApp.getCart();
+      const badge = document.getElementById('cartBadge');
+      if (cart.length > 0) {
+        badge.textContent = cart.length;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Inicializar página
+    function initializePage() {
+      updateUserDisplay();
+      updateCartBadge();
+
+      // Cerrar dropdown al hacer click afuera
+      document.addEventListener('click', function(e) {
+        const menu = document.getElementById('userMenu');
+        const userInfo = document.querySelector('.user-info');
+        if (!menu.contains(e.target) && !userInfo.contains(e.target)) {
+          menu.classList.remove('active');
+        }
+      });
+    }
+
+    // Inicializar cuando el DOM está listo
+    document.addEventListener('DOMContentLoaded', initializePage);
+  </script>
 </body>
 </html>
