@@ -5,9 +5,9 @@ const MarketplaceApp = {
     1: "../imagenes/plata%20collar.png",
     2: "../imagenes/bolso.png",
     3: "../imagenes/blusa.png",
-    4: "../imagenes/blusa.png",
-    5: "../imagenes/bolso.png",
-    6: "../imagenes/plata%20collar.png",
+    4: "../imagenes/vakero.png",
+    5: "../imagenes/cafe.jpg",
+    6: "../imagenes/pan.png",
     7: "../imagenes/blusa.png",
     8: "../imagenes/bolso.png",
     9: "../imagenes/plata%20collar.png"
@@ -93,7 +93,7 @@ const MarketplaceApp = {
       categoria: "Ropa",
       ubicacion: "Zona Norte, Ciudad",
       descripcion: "Pantalón vaquero de alta calidad",
-      foto: "../imagenes/blusa.png",
+      foto: "../imagenes/vakero.png",
       rating: 4.9,
       vendidos: 62
     },
@@ -105,7 +105,7 @@ const MarketplaceApp = {
       categoria: "Alimentos",
       ubicacion: "Centro Histórico, Ciudad",
       descripcion: "Café tostado artesanalmente",
-      foto: "../imagenes/bolso.png",
+      foto: "../imagenes/cafe.jpg",
       rating: 4.8,
       vendidos: 120
     },
@@ -117,7 +117,7 @@ const MarketplaceApp = {
       categoria: "Alimentos",
       ubicacion: "Centro Histórico, Ciudad",
       descripcion: "Croissantes frescos con chocolate belga",
-      foto: "../imagenes/plata%20collar.png",
+      foto: "../imagenes/pan.png",
       rating: 4.9,
       vendidos: 95
     },
@@ -245,11 +245,22 @@ const MarketplaceApp = {
 
   // Reemplaza placeholders previos por rutas locales sin tocar fotos nuevas del usuario
   syncProductImages: function() {
+    const legacyImageMap = {
+      3: ["../imagenes/vakero.png", "/imagenes/vakero.png"],
+      4: ["../imagenes/blusa.png", "/imagenes/blusa.png", "https://via.placeholder.com/300x300?text=Pantalon"],
+      5: ["../imagenes/bolso.png", "/imagenes/bolso.png", "https://via.placeholder.com/300x300?text=Cafe"],
+      6: ["../imagenes/plata%20collar.png", "/imagenes/plata%20collar.png", "https://via.placeholder.com/300x300?text=Croissant"],
+      7: ["../imagenes/vakero.png", "/imagenes/vakero.png"],
+      8: ["../imagenes/cafe.jpg", "/imagenes/cafe.jpg"]
+    };
+
     this.productos = this.productos.map(producto => {
       const defaultImage = this.defaultProductImages[producto.id];
       const currentImage = producto.foto || '';
       const isPlaceholder = currentImage.includes('via.placeholder.com');
-      if (defaultImage && (!currentImage || isPlaceholder)) {
+      const isLegacyImage = (legacyImageMap[producto.id] || []).includes(currentImage);
+
+      if (defaultImage && (!currentImage || isPlaceholder || isLegacyImage)) {
         return {
           ...producto,
           foto: defaultImage
@@ -261,12 +272,22 @@ const MarketplaceApp = {
 
   // Actualiza fotos antiguas en carrito para evitar placeholders rotos
   syncCartImages: function() {
+    const legacyImageMap = {
+      3: ["../imagenes/vakero.png", "/imagenes/vakero.png"],
+      4: ["../imagenes/blusa.png", "/imagenes/blusa.png", "https://via.placeholder.com/300x300?text=Pantalon"],
+      5: ["../imagenes/bolso.png", "/imagenes/bolso.png", "https://via.placeholder.com/300x300?text=Cafe"],
+      6: ["../imagenes/plata%20collar.png", "/imagenes/plata%20collar.png", "https://via.placeholder.com/300x300?text=Croissant"],
+      7: ["../imagenes/vakero.png", "/imagenes/vakero.png"],
+      8: ["../imagenes/cafe.jpg", "/imagenes/cafe.jpg"]
+    };
+
     const cart = this.getCart().map(item => {
       const defaultImage = this.defaultProductImages[item.id];
       const currentImage = item.foto || '';
       const isPlaceholder = currentImage.includes('via.placeholder.com');
+      const isLegacyImage = (legacyImageMap[item.id] || []).includes(currentImage);
 
-      if (defaultImage && (!currentImage || isPlaceholder)) {
+      if (defaultImage && (!currentImage || isPlaceholder || isLegacyImage)) {
         return {
           ...item,
           foto: defaultImage
@@ -408,3 +429,4 @@ const MarketplaceApp = {
 document.addEventListener('DOMContentLoaded', function() {
   MarketplaceApp.init();
 });
+

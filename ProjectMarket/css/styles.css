@@ -379,6 +379,8 @@ nav a.active {
   object-fit: contain;
   padding: 12px;
   background: linear-gradient(145deg, #f7f9fc 0%, #e9eef8 100%);
+  border-bottom: 1px solid #d9e2f2;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 
 .product-info {
