@@ -31,7 +31,7 @@
 
     container.innerHTML = cart.map(item => `
       <div class="cart-item">
-        <img src="${item.foto}" alt="${item.nombre}" class="cart-item-image">
+        <img src="${item.foto}" alt="${item.nombre}" class="cart-item-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="cart-item-info">
           <h3>${item.nombre}</h3>
           <p>${item.descripcion}</p>

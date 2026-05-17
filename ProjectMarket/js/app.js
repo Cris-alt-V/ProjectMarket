@@ -1,5 +1,15 @@
 // Sistema de datos del Marketplace
 const MarketplaceApp = {
+  // Fotos locales por defecto para los productos iniciales
+  defaultProductImages: {
+    1: "../imagenes/plata%20collar.png",
+    2: "../imagenes/bolso.png",
+    3: "../imagenes/blusa.png",
+    4: "../imagenes/blusa.png",
+    5: "../imagenes/bolso.png",
+    6: "../imagenes/plata%20collar.png"
+  },
+
   // Datos simulados de comercios
   comercios: [
     {
@@ -44,7 +54,7 @@ const MarketplaceApp = {
       categoria: "Accesorios",
       ubicacion: "Centro, Ciudad",
       descripcion: "Collar único hecho a mano con plata pura",
-      foto: "https://via.placeholder.com/300x300?text=Collar+Plata",
+      foto: "../imagenes/plata%20collar.png",
       rating: 4.7,
       vendidos: 12
     },
@@ -56,7 +66,7 @@ const MarketplaceApp = {
       categoria: "Bolsos",
       ubicacion: "Centro, Ciudad",
       descripcion: "Bolso hecho a mano con cuero genuino",
-      foto: "https://via.placeholder.com/300x300?text=Bolso+Cuero",
+      foto: "../imagenes/bolso.png",
       rating: 4.8,
       vendidos: 28
     },
@@ -68,7 +78,7 @@ const MarketplaceApp = {
       categoria: "Ropa",
       ubicacion: "Zona Norte, Ciudad",
       descripcion: "Blusa de algodón con estampado moderno",
-      foto: "https://via.placeholder.com/300x300?text=Blusa",
+      foto: "../imagenes/blusa.png",
       rating: 4.6,
       vendidos: 45
     },
@@ -80,7 +90,7 @@ const MarketplaceApp = {
       categoria: "Ropa",
       ubicacion: "Zona Norte, Ciudad",
       descripcion: "Pantalón vaquero de alta calidad",
-      foto: "https://via.placeholder.com/300x300?text=Pantalon",
+      foto: "../imagenes/blusa.png",
       rating: 4.9,
       vendidos: 62
     },
@@ -92,7 +102,7 @@ const MarketplaceApp = {
       categoria: "Alimentos",
       ubicacion: "Centro Histórico, Ciudad",
       descripcion: "Café tostado artesanalmente",
-      foto: "https://via.placeholder.com/300x300?text=Cafe",
+      foto: "../imagenes/bolso.png",
       rating: 4.8,
       vendidos: 120
     },
@@ -104,7 +114,7 @@ const MarketplaceApp = {
       categoria: "Alimentos",
       ubicacion: "Centro Histórico, Ciudad",
       descripcion: "Croissantes frescos con chocolate belga",
-      foto: "https://via.placeholder.com/300x300?text=Croissant",
+      foto: "../imagenes/plata%20collar.png",
       rating: 4.9,
       vendidos: 95
     }
@@ -123,6 +133,7 @@ const MarketplaceApp = {
   // Inicialización
   init: function() {
     this.loadFromStorage();
+    this.syncCartImages();
     this.setupNavigation();
   },
 
@@ -134,7 +145,45 @@ const MarketplaceApp = {
       this.comercios = data.comercios || this.comercios;
       this.productos = data.productos || this.productos;
     }
+
+    this.syncProductImages();
     this.saveToStorage();
+  },
+
+  // Reemplaza placeholders previos por rutas locales sin tocar fotos nuevas del usuario
+  syncProductImages: function() {
+    this.productos = this.productos.map(producto => {
+      const defaultImage = this.defaultProductImages[producto.id];
+      const currentImage = producto.foto || '';
+      const isPlaceholder = currentImage.includes('via.placeholder.com');
+      if (defaultImage && (!currentImage || isPlaceholder)) {
+        return {
+          ...producto,
+          foto: defaultImage
+        };
+      }
+      return producto;
+    });
+  },
+
+  // Actualiza fotos antiguas en carrito para evitar placeholders rotos
+  syncCartImages: function() {
+    const cart = this.getCart().map(item => {
+      const defaultImage = this.defaultProductImages[item.id];
+      const currentImage = item.foto || '';
+      const isPlaceholder = currentImage.includes('via.placeholder.com');
+
+      if (defaultImage && (!currentImage || isPlaceholder)) {
+        return {
+          ...item,
+          foto: defaultImage
+        };
+      }
+
+      return item;
+    });
+
+    this.setCart(cart);
   },
 
   // Guardar datos en localStorage

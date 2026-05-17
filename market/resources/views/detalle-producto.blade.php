@@ -6,7 +6,7 @@
   <div class="product-detail-container">
     <div class="product-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; padding: 40px;">
       <div>
-        <img src="" alt="Producto" id="productImage" class="product-image-large">
+        <img src="" alt="Producto" id="productImage" class="product-image-large" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="product-gallery" id="productGallery"></div>
       </div>
       <div class="product-details">

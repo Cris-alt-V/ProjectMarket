@@ -24,7 +24,9 @@
     .product-image-large {
       width: 100%;
       height: 400px;
-      object-fit: cover;
+      object-fit: contain;
+      padding: 16px;
+      background: linear-gradient(145deg, #f7f9fc 0%, #e9eef8 100%);
       border-radius: 8px;
       margin-bottom: 15px;
     }
@@ -42,12 +44,14 @@
       border-radius: 4px;
       cursor: pointer;
       overflow: hidden;
+      background: linear-gradient(145deg, #f7f9fc 0%, #e9eef8 100%);
     }
 
     .gallery-thumb img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      padding: 4px;
     }
 
     .gallery-thumb.active {
@@ -313,7 +317,7 @@
       const comercio = MarketplaceApp.getComercioById(product.comercioId);
       return `
         <div class="product-card" onclick="goToProductDetail(${product.id})">
-          <img src="${product.foto}" alt="${product.nombre}" class="product-image">
+          <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='../imagenes/blusa.png';">
           <div class="product-info">
             <div class="product-category">${product.categoria}</div>
             <h3 class="product-name">${product.nombre}</h3>
@@ -441,9 +445,9 @@
       let html = `
         <div class="product-detail-grid">
           <div>
-            <img src="${product.foto}" alt="${product.nombre}" class="product-image-large" id="mainImage">
+            <img src="${product.foto}" alt="${product.nombre}" class="product-image-large" id="mainImage" onerror="this.onerror=null;this.src='../imagenes/blusa.png';">
             <div class="product-gallery">
-              ${images.map((img, index) => `<div class="gallery-thumb ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)"><img src="${img}" alt=""></div>`).join('')}
+              ${images.map((img, index) => `<div class="gallery-thumb ${index === 0 ? 'active' : ''}" onclick="changeImage('${img}', this)"><img src="${img}" alt="" onerror="this.onerror=null;this.src='../imagenes/blusa.png';"></div>`).join('')}
             </div>
           </div>
           <div class="product-details">
