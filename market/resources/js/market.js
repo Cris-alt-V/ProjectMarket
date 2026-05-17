@@ -7,7 +7,10 @@ window.MarketplaceApp = {
     3: "/imagenes/blusa.png",
     4: "/imagenes/blusa.png",
     5: "/imagenes/bolso.png",
-    6: "/imagenes/plata%20collar.png"
+    6: "/imagenes/plata%20collar.png",
+    7: "/imagenes/blusa.png",
+    8: "/imagenes/bolso.png",
+    9: "/imagenes/plata%20collar.png"
   },
 
   comercios: [
@@ -115,6 +118,82 @@ window.MarketplaceApp = {
       foto: "/imagenes/plata%20collar.png",
       rating: 4.9,
       vendidos: 95
+    },
+    {
+      id: 7,
+      nombre: "Elegante camiseta para hombre",
+      precio: 42.00,
+      comercioId: 2,
+      categoria: "Ropa",
+      ubicacion: "Zona Norte, Ciudad",
+      descripcion: "Camiseta de corte limpio y confeccion premium, ideal para una presencia sobria y profesional.",
+      foto: "/imagenes/blusa.png",
+      rating: 4.7,
+      vendidos: 18
+    },
+    {
+      id: 8,
+      nombre: "Traje para boda",
+      precio: 249.00,
+      comercioId: 2,
+      categoria: "Ropa",
+      ubicacion: "Zona Norte, Ciudad",
+      descripcion: "Traje de sastreria clasica con acabados de alta calidad, disenado para ceremonias y eventos de maxima formalidad.",
+      foto: "/imagenes/bolso.png",
+      rating: 4.9,
+      vendidos: 9
+    },
+    {
+      id: 9,
+      nombre: "Solar Bloom Privé",
+      precio: 74.00,
+      comercioId: 3,
+      categoria: "Alimentos",
+      ubicacion: "Soyapango",
+      descripcion: "Cultivado con rayos de sol seleccionados, exclusivo para clientes con paladar refinado.",
+      foto: "/imagenes/plata%20collar.png",
+      rating: 4.8,
+      vendidos: 6
+    }
+  ],
+
+  // Productos semilla para mantener novedades aunque haya datos guardados en localStorage
+  seedProducts: [
+    {
+      id: 7,
+      nombre: "Elegante camiseta para hombre",
+      precio: 42.00,
+      comercioId: 2,
+      categoria: "Ropa",
+      ubicacion: "Zona Norte, Ciudad",
+      descripcion: "Camiseta de corte limpio y confeccion premium, ideal para una presencia sobria y profesional.",
+      foto: "/imagenes/blusa.png",
+      rating: 4.7,
+      vendidos: 18
+    },
+    {
+      id: 8,
+      nombre: "Traje para boda",
+      precio: 249.00,
+      comercioId: 2,
+      categoria: "Ropa",
+      ubicacion: "Zona Norte, Ciudad",
+      descripcion: "Traje de sastreria clasica con acabados de alta calidad, disenado para ceremonias y eventos de maxima formalidad.",
+      foto: "/imagenes/bolso.png",
+      rating: 4.9,
+      vendidos: 9
+    },
+    {
+      id: 9,
+      nombre: "Solar Bloom Privé",
+      precio: 74.00,
+      comercioId: 3,
+      categoria: "Alimentos",
+      ubicacion: "Soyapango",
+      descripcion: "Cultivado con rayos de sol seleccionados, exclusivo para clientes con paladar refinado.",
+      foto: "/imagenes/plata%20collar.png",
+      rating: 4.8,
+      vendidos: 6
     }
   ],
 
@@ -140,8 +219,22 @@ window.MarketplaceApp = {
       this.comercios = data.comercios || this.comercios;
       this.productos = data.productos || this.productos;
     }
+    this.ensureSeedProducts();
+    this.productos = this.productos.map(producto =>
+      producto.id === 9 ? { ...producto, ubicacion: "Soyapango" } : producto
+    );
     this.syncProductImages();
     this.saveToStorage();
+  },
+
+  // Agrega productos semilla faltantes sin duplicar registros existentes
+  ensureSeedProducts: function() {
+    this.seedProducts.forEach(seed => {
+      const exists = this.productos.some(producto => producto.id === seed.id);
+      if (!exists) {
+        this.productos.push(seed);
+      }
+    });
   },
 
   // Reemplaza placeholders previos por rutas locales sin tocar fotos nuevas del usuario
