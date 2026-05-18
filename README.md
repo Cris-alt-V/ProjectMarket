@@ -14,7 +14,7 @@ DB_USERNAME=tu_usuario
 DB_PASSWORD=tu_contraseña
 
 2. Creación de la Base de Datos
-​Antes de proceder, acceda a su gestor de bases de datos (ej. phpMyAdmin, DBeaver, Laragon) y cree únicamente la base de datos vacía con el nombre especificado en el archivo de configuración:
+​Antes de proceder, acceda a su gestor de bases de datos en este caso postgresql y cree únicamente la base de datos vacía con el nombre especificado en el archivo de configuración:
 ​Nombre: AristoMarket
 ​Nota: No es necesario crear tablas manualmente; el framework se encargará de estructurarlas.
 ​3. Ejecución de Migraciones
