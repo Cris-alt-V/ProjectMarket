@@ -1,37 +1,37 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\StoreController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\MarketController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
+// Rutas públicas
 Route::get('/', [MarketController::class, 'welcome']);
-Route::get('/productos', [MarketController::class, 'productos']);
-Route::get('/detalle-producto', [MarketController::class, 'detalleProducto']);
+Route::get('/productos', [ProductController::class, 'index']);
+Route::get('/producto/{id}', [ProductController::class, 'show']);
 Route::get('/carrito', [MarketController::class, 'carrito']);
-Route::get('/registro', [MarketController::class, 'registro']);
-Route::get('/micuenta', [MarketController::class, 'micuenta']);
-Route::get('/mis-comercios', [MarketController::class, 'misComercios']);
 Route::get('/comercios', [MarketController::class, 'comercios']);
 Route::get('/tienda', [MarketController::class, 'tienda']);
 Route::view('/acerca-de', 'acerca-de');
 
-Route::post('/api/auth/login', [AuthController::class, 'login']);
-Route::post('/api/auth/register-buyer', [AuthController::class, 'registerBuyer']);
-Route::post('/api/auth/register-store', [AuthController::class, 'registerStore']);
-Route::get('/api/auth/user', [AuthController::class, 'user']);
-Route::post('/api/auth/logout', [AuthController::class, 'logout']);
-Route::post('/api/auth/profile', [AuthController::class, 'updateProfile']);
+// Rutas de autenticación
+Route::get('/registro', [MarketController::class, 'registro']);
+Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/register-buyer', [AuthController::class, 'registerBuyer']);
+Route::post('/auth/register-store', [AuthController::class, 'registerStore']);
+Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-Route::get('/api/products', [ProductController::class, 'index']);
-Route::get('/api/products/{id}', [ProductController::class, 'show']);
+// Rutas protegidas - Cuenta del usuario
+Route::get('/micuenta', [MarketController::class, 'micuenta'])->middleware('auth.session');
+Route::post('/auth/profile', [AuthController::class, 'updateProfile'])->middleware('auth.session');
 
-Route::get('/api/vendor/products', [StoreController::class, 'products']);
-Route::post('/api/vendor/products', [StoreController::class, 'store']);
-Route::put('/api/vendor/products/{id}', [StoreController::class, 'update']);
-Route::delete('/api/vendor/products/{id}', [StoreController::class, 'destroy']);
+// Rutas protegidas - Vendedor
+Route::get('/mis-comercios', [StoreController::class, 'products'])->middleware('auth.session');
+Route::post('/productos/crear', [StoreController::class, 'store'])->middleware('auth.session');
+Route::put('/productos/{id}', [StoreController::class, 'update'])->middleware('auth.session');
+Route::delete('/productos/{id}', [StoreController::class, 'destroy'])->middleware('auth.session');
 
 Route::get('/db-check', function () {
 	try {

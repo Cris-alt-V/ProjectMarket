@@ -22,26 +22,40 @@ window.MarketplaceApp = {
     { id: 6, nombre: "Belleza", icono: "💄" },
   ],
 
-  apiBase: '/api',
-
-  getCsrfToken: function () {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  showNotification: function (message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#dff0d8' : '#f2dede'};
+      color: ${type === 'success' ? '#3c763d' : '#a94442'};
+      padding: 15px 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 9999;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
   },
 
-  async api(path, options = {}) {
-    const headers = options.headers || {};
-    headers['X-CSRF-TOKEN'] = this.getCsrfToken() || '';
-    headers['Accept'] = 'application/json';
-    if (options.body && !(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
-      options.body = JSON.stringify(options.body);
+  toggleUserMenu: function () {
+    const menu = document.getElementById('userMenu');
+    if (menu) {
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
-    const response = await fetch(`${this.apiBase}${path}`, {
-      credentials: 'same-origin',
-      ...options,
-      headers,
-    });
-    return response;
+  },
+
+  goToCart: function () {
+    window.location.href = '/carrito';
+  },
+
+  search: function () {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && searchInput.value) {
+      window.location.href = '/productos?search=' + encodeURIComponent(searchInput.value);
+    }
   },
 
   loadFromStorage: function () {
@@ -58,50 +72,6 @@ window.MarketplaceApp = {
       comercios: this.comercios,
       productos: this.productos,
     }));
-  },
-
-  getCurrentUser: function () {
-    if (this.currentUser) {
-      return this.currentUser;
-    }
-    const stored = localStorage.getItem('currentUser');
-    if (!stored) {
-      return null;
-    }
-    try {
-      this.currentUser = JSON.parse(stored);
-      return this.currentUser;
-    } catch {
-      return null;
-    }
-  },
-
-  setCurrentUser: function (user) {
-    if (user) {
-      this.currentUser = user;
-      localStorage.setItem('currentUser', JSON.stringify(user));
-    } else {
-      this.currentUser = null;
-      localStorage.removeItem('currentUser');
-    }
-  },
-
-  clearCurrentUser: function () {
-    this.currentUser = null;
-    localStorage.removeItem('currentUser');
-  },
-
-  async syncCurrentUser() {
-    const response = await this.api('/auth/user', { method: 'GET' });
-    if (response.ok) {
-      const user = await response.json();
-      if (user) {
-        this.setCurrentUser(user);
-        return user;
-      }
-    }
-    this.clearCurrentUser();
-    return null;
   },
 
   getCart: function () {
@@ -127,20 +97,6 @@ window.MarketplaceApp = {
     this.showNotification('Producto agregado al carrito');
   },
 
-  showNotification: function (message) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-      notification.classList.add('show');
-    }, 10);
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  },
-
   getProductById: function (id) {
     return this.productos.find(p => p.id === parseInt(id, 10));
   },
@@ -152,58 +108,147 @@ window.MarketplaceApp = {
   getProductosByComercio: function (comercioId) {
     return this.productos.filter(p => p.comercioId === parseInt(comercioId, 10));
   },
+};
 
-  setupNavigation: function () {
-    const user = this.getCurrentUser();
-    const accountLink = document.querySelector('[href="/micuenta"]');
-    const storesLink = document.querySelector('[href="/mis-comercios"]');
-    const loginLink = document.querySelector('[href="/registro"]');
-    const registerLink = document.querySelector('[href="/registro?tab=register"]');
-    if (user) {
-      if (accountLink) {
-        accountLink.textContent = `Mi Cuenta (${user.nombre})`;
-      }
-      if (loginLink) {
-        loginLink.style.display = 'none';
-      }
-      if (registerLink) {
-        registerLink.style.display = 'none';
-      }
-      if (storesLink) {
-        storesLink.style.display = user.tipo_usuario === 'vendedor' ? 'block' : 'none';
-      }
+// Funciones globales para navegación
+function goToProductDetail(id) {
+  window.location.href = '/producto/' + id;
+}
+
+function goToStore(id) {
+  window.location.href = '/tienda?id=' + id;
+}
+
+function toggleUserMenu() {
+  MarketplaceApp.toggleUserMenu();
+}
+
+function goToCart() {
+  MarketplaceApp.goToCart();
+}
+
+function search() {
+  MarketplaceApp.search();
+}
+
+// Funciones para carrito
+function addToCart(id) {
+  const product = MarketplaceApp.getProductById(id);
+  if (product) {
+    MarketplaceApp.addToCart(product);
+    updateCartBadge();
+  }
+}
+
+function removeCartItem(id) {
+  const cart = MarketplaceApp.getCart();
+  const filtered = cart.filter(item => item.id !== id);
+  MarketplaceApp.setCart(filtered);
+  updateCartBadge();
+  location.reload();
+}
+
+function checkout() {
+  const cart = MarketplaceApp.getCart();
+  if (cart.length === 0) {
+    MarketplaceApp.showNotification('El carrito está vacío', 'error');
+    return;
+  }
+  MarketplaceApp.showNotification('Procesando pago...');
+  setTimeout(() => {
+    MarketplaceApp.setCart([]);
+    updateCartBadge();
+    window.location.href = '/';
+    MarketplaceApp.showNotification('¡Pedido realizado exitosamente!', 'success');
+  }, 1500);
+}
+
+// Funciones para actualizar UI
+function updateCartBadge() {
+  const cart = MarketplaceApp.getCart();
+  const badge = document.getElementById('cartBadge');
+  if (badge) {
+    if (cart.length > 0) {
+      badge.textContent = cart.length;
+      badge.style.display = 'flex';
     } else {
-      if (accountLink) {
-        accountLink.textContent = 'Mi Cuenta';
-      }
-      if (loginLink) {
-        loginLink.style.display = 'block';
-      }
-      if (registerLink) {
-        registerLink.style.display = 'block';
-      }
-      if (storesLink) {
-        storesLink.style.display = 'none';
-      }
+      badge.style.display = 'none';
     }
-  },
+  }
+}
 
-  async init() {
-    await this.syncCurrentUser();
-    this.loadFromStorage();
-    this.saveToStorage();
-    this.setupNavigation();
-  },
-};
+function updateUserDisplay() {
+  // Usuario se maneja por sesión en el servidor
+  // Esta función solo es para actualizar en cliente si es necesario
+  updateCartBadge();
+}
 
-window.getQueryParam = function (name) {
-  const params = new URLSearchParams(window.location.search);
-  return params.get(name);
-};
+// Funciones para filtros
+function applyFilters() {
+  const location = document.getElementById('filterLocation')?.value || '';
+  const category = document.getElementById('filterCategory')?.value || '';
+  const priceMin = document.getElementById('filterPriceMin')?.value || '0';
+  const priceMax = document.getElementById('filterPriceMax')?.value || '999999';
 
-window.goToCart = function () {
-  window.location.href = '/carrito';
-};
+  let url = '/productos?';
+  if (location) url += '&location=' + encodeURIComponent(location);
+  if (category) url += '&category=' + encodeURIComponent(category);
+  if (priceMin) url += '&priceMin=' + priceMin;
+  if (priceMax) url += '&priceMax=' + priceMax;
+
+  window.location.href = url;
+}
+
+function resetFilters() {
+  document.getElementById('filterLocation').value = '';
+  document.getElementById('filterCategory').value = '';
+  document.getElementById('filterPriceMin').value = '';
+  document.getElementById('filterPriceMax').value = '';
+  window.location.href = '/productos';
+}
+
+// Funciones para tabs
+function switchTab(tab) {
+  const tabs = document.querySelectorAll('[id$="Tab"]');
+  const buttons = document.querySelectorAll('.tab-btn');
+
+  tabs.forEach(t => {
+    t.style.display = t.id === tab + 'Tab' ? 'block' : 'none';
+  });
+
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('onclick').includes(tab)) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// Funciones para cuenta
+function deleteAccount() {
+  if (confirm('¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.')) {
+    MarketplaceApp.showNotification('Cuenta eliminada');
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 1500);
+  }
+}
+
+function deleteStore() {
+  if (confirm('¿Estás seguro de que deseas eliminar tu tienda? Esta acción no se puede deshacer.')) {
+    MarketplaceApp.showNotification('Tienda eliminada');
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 1500);
+  }
+}
+
+// Inicializar en carga
+document.addEventListener('DOMContentLoaded', function() {
+  MarketplaceApp.loadFromStorage();
+  updateCartBadge();
+  updateUserDisplay();
+});
 
 window.goToProductDetail = function (productId) {
   window.location.href = `/detalle-producto?id=${productId}`;

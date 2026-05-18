@@ -1,25 +1,24 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Registro - Marketplace Local'); ?>
 
-@section('title', 'Registro - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <div style="max-width: 720px; margin: 0 auto;">
-    @if ($errors->any())
+    <?php if($errors->any()): ?>
       <div style="background: #fee; color: #c00; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
         <strong>Errores:</strong>
         <ul style="margin: 10px 0 0 20px;">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
+          <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <li><?php echo e($error); ?></li>
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </ul>
       </div>
-    @endif
+    <?php endif; ?>
 
-    @if (session('error'))
+    <?php if(session('error')): ?>
       <div style="background: #fee; color: #c00; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-        {{ session('error') }}
+        <?php echo e(session('error')); ?>
+
       </div>
-    @endif
+    <?php endif; ?>
 
     <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <div style="display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #eee;">
@@ -32,10 +31,10 @@
       <div id="loginTab" style="display: block;">
         <h2>Iniciar Sesión</h2>
         <form action="/auth/login" method="POST">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" name="correo" required value="{{ old('correo') }}">
+            <input type="email" name="correo" required value="<?php echo e(old('correo')); ?>">
           </div>
           <div class="form-group">
             <label>Contraseña</label>
@@ -49,22 +48,22 @@
       <div id="registerTab" style="display: none;">
         <h2>Crear Cuenta de Comprador</h2>
         <form action="/auth/register-buyer" method="POST">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="form-group">
             <label>Nombre Completo</label>
-            <input type="text" name="nombre" required value="{{ old('nombre') }}">
+            <input type="text" name="nombre" required value="<?php echo e(old('nombre')); ?>">
           </div>
           <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" name="correo" required value="{{ old('correo') }}">
+            <input type="email" name="correo" required value="<?php echo e(old('correo')); ?>">
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input type="tel" name="telefono" value="{{ old('telefono') }}">
+            <input type="tel" name="telefono" value="<?php echo e(old('telefono')); ?>">
           </div>
           <div class="form-group">
             <label>Dirección</label>
-            <input type="text" name="direccion" value="{{ old('direccion') }}">
+            <input type="text" name="direccion" value="<?php echo e(old('direccion')); ?>">
           </div>
           <div class="form-group">
             <label>Contraseña</label>
@@ -82,30 +81,30 @@
       <div id="storeTab" style="display: none;">
         <h2>Registrar tu Comercio</h2>
         <form action="/auth/register-store" method="POST">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="form-group">
             <label>Nombre del Comercio</label>
-            <input type="text" name="nombre_negocio" required value="{{ old('nombre_negocio') }}">
+            <input type="text" name="nombre_negocio" required value="<?php echo e(old('nombre_negocio')); ?>">
           </div>
           <div class="form-group">
             <label>Nombre del Propietario</label>
-            <input type="text" name="nombre_propietario" required value="{{ old('nombre_propietario') }}">
+            <input type="text" name="nombre_propietario" required value="<?php echo e(old('nombre_propietario')); ?>">
           </div>
           <div class="form-group">
             <label>Correo Electrónico</label>
-            <input type="email" name="correo" required value="{{ old('correo') }}">
+            <input type="email" name="correo" required value="<?php echo e(old('correo')); ?>">
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input type="tel" name="telefono" value="{{ old('telefono') }}">
+            <input type="tel" name="telefono" value="<?php echo e(old('telefono')); ?>">
           </div>
           <div class="form-group">
             <label>Ubicación del Comercio</label>
-            <input type="text" name="ubicacion" value="{{ old('ubicacion') }}">
+            <input type="text" name="ubicacion" value="<?php echo e(old('ubicacion')); ?>">
           </div>
           <div class="form-group">
             <label>Descripción del Comercio</label>
-            <textarea name="descripcion">{{ old('descripcion') }}</textarea>
+            <textarea name="descripcion"><?php echo e(old('descripcion')); ?></textarea>
           </div>
           <div class="form-group">
             <label>Contraseña</label>
@@ -120,9 +119,9 @@
       </div>
     </div>
   </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   function switchTab(tab) {
     ['login', 'register', 'store'].forEach(name => {
@@ -142,4 +141,5 @@
     switchTab(tab);
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\castr\OneDrive\Desktop\laravel\hola\ProjectMarket\market\resources\views/registro.blade.php ENDPATH**/ ?>

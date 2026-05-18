@@ -9,8 +9,8 @@ class MarketController extends Controller
 {
     public function welcome()
     {
-        $productos = DB::table('Productos')->limit(6)->get();
-        $comercios = DB::table('Vendedores')->limit(4)->get();
+        $productos = DB::table('productos')->limit(6)->get();
+        $comercios = DB::table('vendedores')->limit(4)->get();
 
         return view('welcome', [
             'productos' => $productos,
@@ -20,8 +20,17 @@ class MarketController extends Controller
 
     public function productos(Request $request)
     {
-        $productos = DB::table('Productos')->get();
-        $comercios = DB::table('Vendedores')->get();
+        $query = DB::table('productos as p')
+            ->join('vendedores as v', 'p.id_vendedor', '=', 'v.id_vendedor')
+            ->select('p.*', 'v.nombre_negocio', 'v.ubicacion');
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where('p.nombre', 'like', "%$search%");
+        }
+
+        $productos = $query->get();
+        $comercios = DB::table('vendedores')->get();
 
         return view('productos', [
             'productos' => $productos,
@@ -32,13 +41,13 @@ class MarketController extends Controller
     public function detalleProducto(Request $request)
     {
         $id = $request->query('id');
-        $producto = DB::table('Productos')->where('id_producto', $id)->first();
+        $producto = DB::table('productos')->where('id_producto', $id)->first();
 
         if (!$producto) {
             abort(404);
         }
 
-        $comercio = DB::table('Vendedores')->where('id_vendedor', $producto->id_vendedor)->first();
+        $comercio = DB::table('vendedores')->where('id_vendedor', $producto->id_vendedor)->first();
 
         return view('detalle-producto', [
             'producto' => $producto,
@@ -49,12 +58,12 @@ class MarketController extends Controller
     public function tienda(Request $request)
     {
         $id = $request->query('id');
-        $tienda = DB::table('Vendedores')->where('id_vendedor', $id)->first();
-        if (! $tienda) {
+        $tienda = DB::table('vendedores')->where('id_vendedor', $id)->first();
+        if (!$tienda) {
             abort(404);
         }
 
-        $productos = DB::table('Productos')->where('id_vendedor', $tienda->id_vendedor)->get();
+        $productos = DB::table('productos')->where('id_vendedor', $tienda->id_vendedor)->get();
 
         return view('tienda', [
             'comercio' => $tienda,
@@ -74,32 +83,34 @@ class MarketController extends Controller
 
     public function micuenta()
     {
+        $user = session('user');
+        if (!$user) {
+            return redirect('/registro');
+        }
+
         return view('micuenta', [
-            'user' => session('user'),
+            'user' => $user,
         ]);
     }
 
     public function misComercios()
     {
         $user = session('user');
-        $vendor = null;
-        $productos = [];
-
-        if ($user && $user['tipo_usuario'] === 'vendedor') {
-            $vendor = DB::table('Vendedores')->where('id_vendedor', $user['id_usuario'])->first();
-            $productos = DB::table('Productos')->where('id_vendedor', $user['id_usuario'])->get();
+        if (!$user || $user['tipo_usuario'] !== 'vendedor') {
+            return redirect('/registro');
         }
+
+        $productos = DB::table('productos')->where('id_vendedor', $user['id_usuario'])->get();
 
         return view('mis-comercios', [
             'user' => $user,
-            'vendor' => $vendor,
             'productos' => $productos,
         ]);
     }
 
     public function comercios()
     {
-        $comercios = DB::table('Vendedores')->get();
+        $comercios = DB::table('vendedores')->get();
 
         return view('comercios', [
             'comercios' => $comercios,
