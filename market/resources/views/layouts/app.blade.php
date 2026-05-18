@@ -62,6 +62,10 @@
         </div>
     </header>
 
+    <script>
+        window.currentSessionUser = @json(session('user'));
+    </script>
+
     <main class="main-container">
         @yield('content')
     </main>

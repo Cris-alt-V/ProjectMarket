@@ -62,6 +62,10 @@
         </div>
     </header>
 
+    <script>
+        window.currentSessionUser = <?php echo json_encode(session('user'), 15, 512) ?>;
+    </script>
+
     <main class="main-container">
         <?php echo $__env->yieldContent('content'); ?>
     </main>

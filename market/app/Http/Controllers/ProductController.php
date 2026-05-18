@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = trim($request->query('search', ''));
+
+        $comercios = DB::table('vendedores')->get();
+
         $productos = DB::table('productos as p')
             ->join('vendedores as v', 'p.id_vendedor', '=', 'v.id_vendedor')
             ->select(
@@ -23,9 +27,16 @@ class ProductController extends Controller
                 'v.ubicacion as tienda_ubicacion',
                 'v.descripcion as tienda_descripcion'
             )
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('p.nombre', 'ilike', "%{$search}%")
+                        ->orWhere('p.descripcion', 'ilike', "%{$search}%")
+                        ->orWhere('v.nombre_negocio', 'ilike', "%{$search}%");
+                });
+            })
             ->get();
 
-        return view('productos', compact('productos'));
+        return view('productos', compact('productos', 'comercios'));
     }
 
     public function show($id)
