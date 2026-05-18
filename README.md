@@ -6,7 +6,7 @@ Siga estos pasos para configurar el entorno local y ejecutar las migraciones de 
 Cree o edite el archivo `.env` en la raíz del proyecto e introduzca sus credenciales de acceso local. Asegúrese de especificar el nombre correcto de la base de datos:
 
 ```env
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=AristoMarket
