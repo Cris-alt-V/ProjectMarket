@@ -120,61 +120,90 @@
     });
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const user = {
-      id: Math.random(),
-      nombre: email.split('@')[0],
-      email: email,
-      tipo: 'comprador'
-    };
-    MarketplaceApp.setCurrentUser(user);
+    const correo = document.getElementById('loginEmail').value;
+    const contraseña = document.getElementById('loginPassword').value;
+
+    const response = await MarketplaceApp.api('/auth/login', {
+      method: 'POST',
+      body: { correo, contraseña },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      MarketplaceApp.showNotification(error.message || 'Error al iniciar sesión');
+      return;
+    }
+
+    const data = await response.json();
+    MarketplaceApp.setCurrentUser(data.user);
     MarketplaceApp.showNotification('¡Bienvenido! Has iniciado sesión correctamente');
     setTimeout(() => window.location.href = '/', 1500);
   }
 
-  function handleRegisterBuyer(e) {
+  async function handleRegisterBuyer(e) {
     e.preventDefault();
-    const password = document.getElementById('buyerPassword').value;
-    const passwordConfirm = document.getElementById('buyerPasswordConfirm').value;
-    if (password !== passwordConfirm) {
+    const contraseña = document.getElementById('buyerPassword').value;
+    const contraseñaConfirm = document.getElementById('buyerPasswordConfirm').value;
+    if (contraseña !== contraseñaConfirm) {
       MarketplaceApp.showNotification('Las contraseñas no coinciden');
       return;
     }
-    const user = {
-      id: Math.random(),
-      nombre: document.getElementById('buyerName').value,
-      email: document.getElementById('buyerEmail').value,
-      telefono: document.getElementById('buyerPhone').value,
-      direccion: document.getElementById('buyerAddress').value,
-      tipo: 'comprador'
-    };
-    MarketplaceApp.setCurrentUser(user);
+
+    const response = await MarketplaceApp.api('/auth/register-buyer', {
+      method: 'POST',
+      body: {
+        nombre: document.getElementById('buyerName').value,
+        correo: document.getElementById('buyerEmail').value,
+        telefono: document.getElementById('buyerPhone').value,
+        direccion: document.getElementById('buyerAddress').value,
+        contraseña,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      MarketplaceApp.showNotification(error.message || 'Error al registrar comprador');
+      return;
+    }
+
+    const data = await response.json();
+    MarketplaceApp.setCurrentUser(data.user);
     MarketplaceApp.showNotification('¡Registro completado! Bienvenido a Marketplace Local');
     setTimeout(() => window.location.href = '/', 1500);
   }
 
-  function handleRegisterStore(e) {
+  async function handleRegisterStore(e) {
     e.preventDefault();
-    const password = document.getElementById('storePassword').value;
-    const passwordConfirm = document.getElementById('storePasswordConfirm').value;
-    if (password !== passwordConfirm) {
+    const contraseña = document.getElementById('storePassword').value;
+    const contraseñaConfirm = document.getElementById('storePasswordConfirm').value;
+    if (contraseña !== contraseñaConfirm) {
       MarketplaceApp.showNotification('Las contraseñas no coinciden');
       return;
     }
-    const user = {
-      id: Math.random(),
-      nombre: document.getElementById('storeOwner').value,
-      nombreComercio: document.getElementById('storeName').value,
-      email: document.getElementById('storeEmail').value,
-      telefono: document.getElementById('storePhone').value,
-      ubicacion: document.getElementById('storeLocation').value,
-      descripcion: document.getElementById('storeDescription').value,
-      tipo: 'comercio'
-    };
-    MarketplaceApp.setCurrentUser(user);
+
+    const response = await MarketplaceApp.api('/auth/register-store', {
+      method: 'POST',
+      body: {
+        nombre_propietario: document.getElementById('storeOwner').value,
+        nombre_negocio: document.getElementById('storeName').value,
+        correo: document.getElementById('storeEmail').value,
+        telefono: document.getElementById('storePhone').value,
+        ubicacion: document.getElementById('storeLocation').value,
+        descripcion: document.getElementById('storeDescription').value,
+        contraseña,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      MarketplaceApp.showNotification(error.message || 'Error al registrar comercio');
+      return;
+    }
+
+    const data = await response.json();
+    MarketplaceApp.setCurrentUser(data.user);
     MarketplaceApp.showNotification('¡Tu comercio ha sido registrado exitosamente!');
     setTimeout(() => window.location.href = '/mis-comercios', 1500);
   }

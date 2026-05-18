@@ -132,14 +132,28 @@
     if (btn) btn.classList.add('active');
   }
 
-  function saveProfile(e) {
+  async function saveProfile(e) {
     e.preventDefault();
     const user = MarketplaceApp.getCurrentUser();
     if (!user) return;
-    user.nombre = document.getElementById('editName').value;
-    user.telefono = document.getElementById('editPhone').value;
-    user.direccion = document.getElementById('editAddress').value;
-    MarketplaceApp.setCurrentUser(user);
+
+    const response = await MarketplaceApp.api('/auth/profile', {
+      method: 'POST',
+      body: {
+        nombre: document.getElementById('editName').value,
+        telefono: document.getElementById('editPhone').value,
+        direccion: document.getElementById('editAddress').value,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      MarketplaceApp.showNotification(error.message || 'Error al actualizar perfil');
+      return;
+    }
+
+    const data = await response.json();
+    MarketplaceApp.setCurrentUser(data.user);
     updateProfile();
     MarketplaceApp.showNotification('Perfil actualizado exitosamente');
     switchTab('profile');
@@ -169,7 +183,7 @@
     const user = MarketplaceApp.getCurrentUser();
     if (!user) return;
     document.getElementById('displayName').textContent = user.nombre;
-    document.getElementById('displayEmail').textContent = user.email;
+    document.getElementById('displayEmail').textContent = user.correo || user.email || '-';
     document.getElementById('displayPhone').textContent = user.telefono || '-';
     document.getElementById('displayAddress').textContent = user.direccion || '-';
     document.getElementById('editName').value = user.nombre;
@@ -177,7 +191,8 @@
     document.getElementById('editAddress').value = user.direccion || '';
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    await MarketplaceApp.syncCurrentUser();
     const user = MarketplaceApp.getCurrentUser();
     if (!user) {
       document.getElementById('loginPrompt').style.display = 'block';

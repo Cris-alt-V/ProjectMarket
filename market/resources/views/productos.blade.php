@@ -68,8 +68,36 @@
 
 @push('scripts')
 <script>
+  const pageStores = @json($comercios);
+  const pageProducts = @json($productos);
+
+  MarketplaceApp.comercios = pageStores.map(store => ({
+    id: store.id_vendedor,
+    nombre: store.nombre_negocio,
+    ubicacion: store.ubicacion || 'Ubicación no disponible',
+    telefono: store.telefono || '(Sin teléfono)',
+    email: store.email || 'info@marketplace.local',
+    descripcion: store.descripcion || 'Comercio local',
+    rating: 4.7,
+    foto: '/imagenes/blusa.png',
+  }));
+
+  MarketplaceApp.productos = pageProducts.map(product => ({
+    id: product.id_producto,
+    nombre: product.nombre,
+    descripcion: product.descripcion,
+    precio: parseFloat(product.precio),
+    stock: product.stock,
+    foto: product.imagen_url || '/imagenes/blusa.png',
+    comercioId: product.id_vendedor,
+    categoria: 'General',
+    ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
+    rating: 4.5,
+    vendidos: 0,
+  }));
+
   function createProductCard(product) {
-    const comercio = MarketplaceApp.getComercioById(product.comercioId);
+    const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
     return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
         <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">

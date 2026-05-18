@@ -36,17 +36,31 @@
 
 @push('scripts')
 <script>
-  let currentStoreId = null;
+  const store = @json($comercio);
+  const pageProducts = @json($productos);
+
+  MarketplaceApp.productos = pageProducts.map(product => ({
+    id: product.id_producto,
+    nombre: product.nombre,
+    descripcion: product.descripcion,
+    precio: parseFloat(product.precio),
+    stock: product.stock,
+    foto: product.imagen_url || '/imagenes/blusa.png',
+    comercioId: product.id_vendedor,
+    categoria: 'General',
+    ubicacion: store.ubicacion || 'Local',
+    rating: 4.5,
+    vendidos: 0,
+  }));
 
   function createProductCard(product) {
-    const comercio = MarketplaceApp.getComercioById(product.comercioId);
     return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
         <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="product-info">
           <div class="product-category">${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
-          <div class="product-store">🏪 ${comercio.nombre}</div>
+          <div class="product-store">🏪 ${store.nombre_negocio}</div>
           <div class="product-description">${product.descripcion}</div>
           <div class="product-footer">
             <div class="product-price">$${product.precio.toFixed(2)}</div>
@@ -63,7 +77,7 @@
     const priceMin = parseFloat(document.getElementById('filterPriceMin').value) || 0;
     const priceMax = parseFloat(document.getElementById('filterPriceMax').value) || 10000;
 
-    let products = MarketplaceApp.getProductosByComercio(currentStoreId);
+    let products = MarketplaceApp.productos;
     if (query) {
       const q = query.toLowerCase();
       products = products.filter(p => p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q));
@@ -82,24 +96,18 @@
   }
 
   function initializePage() {
-    currentStoreId = parseInt(getQueryParam('id'));
-    const store = MarketplaceApp.getComercioById(currentStoreId);
-    if (!store) {
-      document.getElementById('storeHeader').innerHTML = '<p style="text-align: center; padding: 40px;">Tienda no encontrada</p>';
-      return;
-    }
-    const products = MarketplaceApp.getProductosByComercio(currentStoreId);
+    const products = MarketplaceApp.productos;
     const categories = [...new Set(products.map(p => p.categoria))];
 
     document.getElementById('storeHeader').innerHTML = `
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; border-radius: 8px; margin-bottom: 40px; text-align: center;">
-        <h1>${store.nombre}</h1>
+        <h1>${store.nombre_negocio}</h1>
         <p>${store.descripcion}</p>
         <div class="store-header-info" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
-          <div class="info-box"><strong>⭐ Calificación</strong>${store.rating}/5.0</div>
-          <div class="info-box"><strong>📍 Ubicación</strong>${store.ubicacion}</div>
+          <div class="info-box"><strong>⭐ Calificación</strong>4.7/5.0</div>
+          <div class="info-box"><strong>📍 Ubicación</strong>${store.ubicacion || 'Ubicación no disponible'}</div>
           <div class="info-box"><strong>📦 Productos</strong>${products.length} disponibles</div>
-          <div class="info-box"><strong>📞 Contacto</strong>${store.telefono}</div>
+          <div class="info-box"><strong>📞 Contacto</strong>${store.telefono || '(Sin teléfono)'}</div>
         </div>
       </div>
     `;

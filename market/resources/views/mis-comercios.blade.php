@@ -32,7 +32,7 @@
     const storesContent = document.getElementById('storesContent');
     const storesGrid = document.getElementById('storesGrid');
 
-    if (!user || user.tipo !== 'comercio') {
+    if (!user || user.tipo_usuario !== 'vendedor') {
       loginPrompt.style.display = 'block';
       storesContent.style.display = 'none';
     } else {
@@ -41,7 +41,7 @@
       storesGrid.innerHTML = `
         <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
-            <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">🏪 ${user.nombreComercio}</h3>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">🏪 ${user.nombre_negocio}</h3>
             <p style="margin: 0; opacity: 0.9;">${user.descripcion}</p>
           </div>
           <div style="padding: 20px;">
@@ -52,11 +52,11 @@
               </div>
               <div>
                 <label style="color: #666; font-size: 0.9em;">Teléfono</label>
-                <p style="margin: 5px 0; font-weight: bold;">${user.telefono}</p>
+                <p style="margin: 5px 0; font-weight: bold;">${user.telefono || '(Sin teléfono)'}</p>
               </div>
               <div>
                 <label style="color: #666; font-size: 0.9em;">Correo</label>
-                <p style="margin: 5px 0; font-weight: bold;">${user.email}</p>
+                <p style="margin: 5px 0; font-weight: bold;">${user.correo || user.email}</p>
               </div>
               <div>
                 <label style="color: #666; font-size: 0.9em;">Propietario</label>
