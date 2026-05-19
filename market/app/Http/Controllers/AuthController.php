@@ -174,4 +174,30 @@ class AuthController extends Controller
 
         return redirect('/micuenta')->with('success', 'Perfil actualizado');
     }
+
+    public function addproduct(Request $request)
+    {
+        $request->validate([
+            'id_vendedor' => 'required|integer|exists:vendedores,id_vendedor',
+            'nombre' => 'required|string|max:100',
+            'descripcion' => 'nullable|string',
+            'precio' => 'required|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
+            'imagen_url' => 'nullable|string|max:255',
+        ]);
+
+        $id = DB::table('productos')->insertGetId([
+            'id_vendedor' => $request->id_vendedor,
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'precio' => $request->precio,
+            'stock' => $request->stock ?? 0,
+            'imagen_url' => $request->imagen_url,
+        ], 'id_producto');
+
+        return response()->json([
+            'success' => true,
+            'id_producto' => $id
+        ]);
+    }
 }

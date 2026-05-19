@@ -202,8 +202,44 @@
 
     // Agregar producto
     function addProduct() {
-      MarketplaceApp.showNotification('Funcionalidad de agregar producto en desarrollo');
+      const nombre = document.getElementById('productName').value;
+      const precio = document.getElementById('productPrice').value;
+      const descripcion = document.getElementById('productDescription').value;
+      const stock = document.getElementById('productStock').value || 0;
+      const imagenUrl = document.getElementById('productImage').value || null;
+
+      // El vendedor actual debe estar en sesión
+      const idVendedor = MarketplaceApp.getCurrentUser().id_usuario;
+
+      fetch('/productos/agregar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          id_vendedor: idVendedor,
+          nombre: nombre,
+          descripcion: descripcion,
+          precio: precio,
+          stock: stock,
+          imagen_url: imagenUrl
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          MarketplaceApp.showNotification('Producto agregado exitosamente');
+        } else {
+          MarketplaceApp.showNotification('Error al agregar producto');
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        MarketplaceApp.showNotification('Error de conexión con el servidor');
+      });
     }
+
 
     // Eliminar tienda
     function deleteStore() {

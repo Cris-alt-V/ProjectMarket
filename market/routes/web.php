@@ -32,6 +32,8 @@ Route::get('/mis-comercios', [StoreController::class, 'products'])->middleware('
 Route::post('/productos/crear', [StoreController::class, 'store'])->middleware('auth.session');
 Route::put('/productos/{id}', [StoreController::class, 'update'])->middleware('auth.session');
 Route::delete('/productos/{id}', [StoreController::class, 'destroy'])->middleware('auth.session');
+Route::post('/productos/agregar', [AuthController::class, 'addproduct'])->middleware('auth.session');
+
 
 Route::get('/db-check', function () {
 	try {
