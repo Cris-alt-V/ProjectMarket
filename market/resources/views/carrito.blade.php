@@ -266,6 +266,111 @@
   transform: translateY(-2px);
 }
 
+/* ======================== COUPON CARD ======================== */
+.coupon-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: slideUp 0.5s ease-out;
+}
+
+.coupon-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 14px 0;
+}
+
+.coupon-form {
+  display: flex;
+  gap: 12px;
+}
+
+.coupon-input {
+  flex: 1;
+  min-width: 0;
+  border: 2px solid #e8e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #1a1a2e;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.coupon-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+
+.coupon-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.22);
+}
+
+.coupon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+.coupon-message {
+  min-height: 18px;
+  margin: 10px 0 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.coupon-message.success {
+  color: #2f9e44;
+}
+
+.coupon-message.error {
+  color: #e03131;
+}
+
+.coupon-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f1f8f4;
+  border: 1px solid #b7e4c7;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.coupon-applied strong {
+  color: #1a1a2e;
+}
+
+.coupon-remove-btn {
+  background: transparent;
+  border: 1px solid #2f9e44;
+  color: #2f9e44;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.summary-row.discount {
+  color: #2f9e44;
+}
+
+.summary-row.discount strong {
+  color: #2f9e44;
+}
+
 /* ======================== CART SUMMARY SIDEBAR ======================== */
 .cart-summary-sidebar {
   background: white;
@@ -450,6 +555,16 @@
     border-top: 1px solid #e8e8f0;
   }
 
+  .coupon-form,
+  .coupon-applied {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .coupon-btn {
+    min-height: 44px;
+  }
+
   .cart-summary-sidebar {
     padding: 20px;
   }
@@ -464,11 +579,38 @@
 
 @push('scripts')
 <script>
+  const PROMO_COUPON = {
+    code: 'Rata 40400',
+    discountRate: 0.13
+  };
+
+  function normalizeCouponCode(code) {
+    return String(code || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  function getAppliedCoupon() {
+    const coupon = JSON.parse(localStorage.getItem('appliedCoupon') || 'null');
+    if (coupon && normalizeCouponCode(coupon.code) === normalizeCouponCode(PROMO_COUPON.code)) {
+      return coupon;
+    }
+    localStorage.removeItem('appliedCoupon');
+    return null;
+  }
+
+  function setAppliedCoupon(coupon) {
+    localStorage.setItem('appliedCoupon', JSON.stringify(coupon));
+  }
+
+  function clearAppliedCoupon() {
+    localStorage.removeItem('appliedCoupon');
+  }
+
   function renderCart() {
     const cart = MarketplaceApp.getCart();
     const container = document.getElementById('cartItemsContainer');
     const itemCountDisplay = document.getElementById('itemCountDisplay');
     const summary = document.getElementById('summaryContainer');
+    const appliedCoupon = getAppliedCoupon();
 
     // Mostrar cantidad de items
     const itemCount = cart.reduce((sum, item) => sum + item.cantidad, 0);
@@ -486,6 +628,25 @@
       summary.innerHTML = '';
       return;
     }
+
+    const couponBlock = appliedCoupon ? `
+      <div class="coupon-card">
+        <p class="coupon-title">Codigo promocional</p>
+        <div class="coupon-applied">
+          <span>Cupon <strong>${appliedCoupon.code}</strong> aplicado: 13% de descuento.</span>
+          <button class="coupon-remove-btn" onclick="removeCoupon()">Quitar</button>
+        </div>
+      </div>
+    ` : `
+      <div class="coupon-card">
+        <p class="coupon-title">&iquest;Tenes un codigo promocional?</p>
+        <form class="coupon-form" onsubmit="applyCoupon(event)">
+          <input type="text" class="coupon-input" id="couponCodeInput" placeholder="Codigo promocional">
+          <button type="submit" class="coupon-btn">Aplicar</button>
+        </form>
+        <p class="coupon-message" id="couponMessage"></p>
+      </div>
+    `;
 
     container.innerHTML = cart.map(item => `
       <div class="cart-item-card" id="cart-item-${item.id}">
@@ -509,11 +670,19 @@
           <button class="remove-btn" onclick="removeCartItem(${item.id})">✕ Eliminar</button>
         </div>
       </div>
-    `).join('');
+    `).join('') + couponBlock;
 
     const subtotal = cart.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
-    const taxes = subtotal * 0.12;
-    const total = subtotal + taxes;
+    const discount = appliedCoupon ? subtotal * PROMO_COUPON.discountRate : 0;
+    const discountedSubtotal = Math.max(subtotal - discount, 0);
+    const taxes = discountedSubtotal * 0.12;
+    const total = discountedSubtotal + taxes;
+    const discountRow = appliedCoupon ? `
+      <div class="summary-row discount">
+        <span>Descuento (${appliedCoupon.code})</span>
+        <strong>-$${discount.toFixed(2)}</strong>
+      </div>
+    ` : '';
 
     summary.innerHTML = `
       <div class="summary-title">📋 Resumen</div>
@@ -521,6 +690,7 @@
         <span>Subtotal</span>
         <strong>$${subtotal.toFixed(2)}</strong>
       </div>
+      ${discountRow}
       <div class="summary-row">
         <span>Impuestos (12%)</span>
         <strong>$${taxes.toFixed(2)}</strong>
@@ -535,6 +705,35 @@
       <button class="checkout-btn" onclick="checkout()">Proceder al Pago</button>
       <button class="continue-shopping-btn" onclick="window.location.href='/productos'">Seguir Comprando</button>
     `;
+  }
+
+  function applyCoupon(event) {
+    event.preventDefault();
+
+    const input = document.getElementById('couponCodeInput');
+    const message = document.getElementById('couponMessage');
+    const enteredCode = input ? input.value : '';
+
+    if (normalizeCouponCode(enteredCode) !== normalizeCouponCode(PROMO_COUPON.code)) {
+      if (message) {
+        message.textContent = 'Codigo invalido o vencido.';
+        message.className = 'coupon-message error';
+      }
+      return;
+    }
+
+    setAppliedCoupon({
+      code: PROMO_COUPON.code,
+      discountRate: PROMO_COUPON.discountRate
+    });
+    MarketplaceApp.showNotification('Cupon aplicado: 13% de descuento');
+    renderCart();
+  }
+
+  function removeCoupon() {
+    clearAppliedCoupon();
+    MarketplaceApp.showNotification('Cupon eliminado');
+    renderCart();
   }
 
   function increaseQuantity(productId) {
