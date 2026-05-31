@@ -502,10 +502,185 @@ window.updateCartBadge = function() {
   }
 };
 
+// ======================== FUNCIONES DE REGISTRO Y AUTENTICACIÓN ========================
+window.switchTab = function(tabName) {
+  // Ocultar todos los tabs
+  const tabs = document.querySelectorAll('.auth-tab-content');
+  const buttons = document.querySelectorAll('.tab-btn');
+
+  tabs.forEach(tab => tab.classList.remove('active'));
+  buttons.forEach(btn => btn.classList.remove('active'));
+
+  // Mostrar el tab seleccionado
+  const activeTab = document.getElementById(tabName + 'Tab');
+  const activeButton = document.getElementById('btn' + tabName.charAt(0).toUpperCase() + tabName.slice(1) + 'Tab');
+
+  if (activeTab) activeTab.classList.add('active');
+  if (activeButton) activeButton.classList.add('active');
+};
+
+window.handleLogin = function(event) {
+  event.preventDefault();
+
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    MarketplaceApp.showNotification('Por favor completa todos los campos', 'error');
+    return;
+  }
+
+  // Simular login (en producción, hacer llamada al servidor)
+  const user = {
+    id: Math.random(),
+    nombre: email.split('@')[0],
+    email: email,
+    tipo: 'comprador',
+    fecha_registro: new Date().toISOString()
+  };
+
+  MarketplaceApp.setCurrentUser(user);
+  updateUserDisplay();
+  MarketplaceApp.showNotification('¡Bienvenido! Sesión iniciada correctamente');
+
+  setTimeout(() => {
+    window.location.href = '/';
+  }, 1500);
+};
+
+window.handleRegisterBuyer = function(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('buyerName').value;
+  const email = document.getElementById('buyerEmail').value;
+  const phone = document.getElementById('buyerPhone').value;
+  const address = document.getElementById('buyerAddress').value;
+  const password = document.getElementById('buyerPassword').value;
+  const passwordConfirm = document.getElementById('buyerPasswordConfirm').value;
+  const termsAccepted = document.getElementById('termsAccept').checked;
+
+  // Validaciones
+  if (!name || !email || !phone || !address || !password || !passwordConfirm) {
+    MarketplaceApp.showNotification('Por favor completa todos los campos', 'error');
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    MarketplaceApp.showNotification('Las contraseñas no coinciden', 'error');
+    return;
+  }
+
+  if (!termsAccepted) {
+    MarketplaceApp.showNotification('Debes aceptar los términos y condiciones', 'error');
+    return;
+  }
+
+  if (password.length < 6) {
+    MarketplaceApp.showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+    return;
+  }
+
+  // Crear usuario
+  const newUser = {
+    id: Math.random(),
+    nombre: name,
+    email: email,
+    telefono: phone,
+    direccion: address,
+    tipo: 'comprador',
+    fecha_registro: new Date().toISOString()
+  };
+
+  MarketplaceApp.setCurrentUser(newUser);
+  updateUserDisplay();
+  MarketplaceApp.showNotification('¡Cuenta creada exitosamente! Bienvenido a AristoMarket');
+
+  setTimeout(() => {
+    window.location.href = '/';
+  }, 1500);
+};
+
+window.handleRegisterStore = function(event) {
+  event.preventDefault();
+
+  const storeName = document.getElementById('storeName').value;
+  const ownerName = document.getElementById('storeOwner').value;
+  const email = document.getElementById('storeEmail').value;
+  const phone = document.getElementById('storePhone').value;
+  const location = document.getElementById('storeLocation').value;
+  const description = document.getElementById('storeDescription').value;
+  const password = document.getElementById('storePassword').value;
+  const passwordConfirm = document.getElementById('storePasswordConfirm').value;
+  const termsAccepted = document.getElementById('storeTermsAccept').checked;
+
+  // Validaciones
+  if (!storeName || !ownerName || !email || !phone || !location || !description || !password || !passwordConfirm) {
+    MarketplaceApp.showNotification('Por favor completa todos los campos', 'error');
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    MarketplaceApp.showNotification('Las contraseñas no coinciden', 'error');
+    return;
+  }
+
+  if (!termsAccepted) {
+    MarketplaceApp.showNotification('Debes aceptar los términos y condiciones para comerciantes', 'error');
+    return;
+  }
+
+  if (password.length < 6) {
+    MarketplaceApp.showNotification('La contraseña debe tener al menos 6 caracteres', 'error');
+    return;
+  }
+
+  // Crear comercio y usuario
+  const newStore = {
+    id: Math.random(),
+    nombre: storeName,
+    ubicacion: location,
+    telefono: phone,
+    email: email,
+    descripcion: description,
+    rating: 5.0,
+    foto: 'https://via.placeholder.com/100?text=' + storeName.replace(/\s/g, '+')
+  };
+
+  const storeUser = {
+    id: Math.random(),
+    nombre: ownerName,
+    email: email,
+    telefono: phone,
+    comercioId: newStore.id,
+    tipo: 'comercio',
+    fecha_registro: new Date().toISOString()
+  };
+
+  // Agregar el comercio
+  MarketplaceApp.comercios.push(newStore);
+  MarketplaceApp.setCurrentUser(storeUser);
+  updateUserDisplay();
+  MarketplaceApp.showNotification('¡Comercio registrado exitosamente! Ahora puedes empezar a vender');
+
+  setTimeout(() => {
+    window.location.href = '/mis-comercios';
+  }, 1500);
+};
+
+// ======================== INICIALIZACIÓN ========================
 window.addEventListener('DOMContentLoaded', function() {
   MarketplaceApp.init();
   updateUserDisplay();
   updateCartBadge();
+  
+  // Determinar el tab activo inicial
+  const urlParams = new URLSearchParams(window.location.search);
+  const tab = urlParams.get('tab') || 'login';
+  
+  if (document.getElementById(tab + 'Tab')) {
+    switchTab(tab);
+  }
+  
   document.addEventListener('click', function(e) {
     const menu = document.getElementById('userMenu');
     const userInfo = document.querySelector('.user-info');
