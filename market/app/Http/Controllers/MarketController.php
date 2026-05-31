@@ -49,15 +49,18 @@ class MarketController extends Controller
 
         $comercio = DB::table('vendedores')->where('id_vendedor', $producto->id_vendedor)->first();
 
+        $reviews = DB::table('reviews')->where('producto_id', $id)->orderBy('created_at', 'desc')->get();
+
         return view('detalle-producto', [
             'producto' => $producto,
             'comercio' => $comercio,
+            'reviews' => $reviews,
         ]);
     }
 
     public function tienda(Request $request)
     {
-        $id = $request->query('id');
+        $id = $request->query('id', $request->query('comercio_id'));
         $tienda = DB::table('vendedores')->where('id_vendedor', $id)->first();
         if (!$tienda) {
             abort(404);
@@ -88,8 +91,24 @@ class MarketController extends Controller
             return redirect('/registro');
         }
 
+        $type = $user['tipo_usuario'] === 'vendedor' ? 'vendedor' : 'user';
+        $notifications = DB::table('notifications')
+            ->where('notifiable_type', $type)
+            ->where('notifiable_id', $user['id_usuario'])
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        $unreadCount = DB::table('notifications')
+            ->where('notifiable_type', $type)
+            ->where('notifiable_id', $user['id_usuario'])
+            ->whereNull('read_at')
+            ->count();
+
         return view('micuenta', [
             'user' => $user,
+            'notifications' => $notifications,
+            'unreadCount' => $unreadCount,
         ]);
     }
 

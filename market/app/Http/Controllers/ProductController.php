@@ -28,13 +28,28 @@ class ProductController extends Controller
                 'v.descripcion as tienda_descripcion'
             )
             ->when($search, function ($query, $search) {
-                return $query->where(function ($subQuery) use ($search) {
-                    $subQuery->where('p.nombre', 'ilike', "%{$search}%")
-                        ->orWhere('p.descripcion', 'ilike', "%{$search}%")
-                        ->orWhere('v.nombre_negocio', 'ilike', "%{$search}%");
+                $searchTerm = '%' . strtolower($search) . '%';
+                return $query->where(function ($subQuery) use ($searchTerm) {
+                    $subQuery->whereRaw('LOWER(p.nombre) LIKE ?', [$searchTerm])
+                        ->orWhereRaw('LOWER(p.descripcion) LIKE ?', [$searchTerm])
+                        ->orWhereRaw('LOWER(v.nombre_negocio) LIKE ?', [$searchTerm]);
                 });
             })
             ->get();
+
+        // Attach average rating and reviews count for each product
+        $ratings = DB::table('reviews')
+            ->select('producto_id', DB::raw('AVG(rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+            ->groupBy('producto_id')
+            ->get()
+            ->keyBy('producto_id');
+
+        $productos = $productos->map(function ($p) use ($ratings) {
+            $meta = $ratings->get($p->id_producto);
+            $p->avg_rating = $meta ? round($meta->avg_rating, 2) : 0;
+            $p->reviews_count = $meta ? (int)$meta->reviews_count : 0;
+            return $p;
+        });
 
         return view('productos', compact('productos', 'comercios'));
     }
@@ -43,6 +58,7 @@ class ProductController extends Controller
     {
         $producto = DB::table('productos as p')
             ->join('vendedores as v', 'p.id_vendedor', '=', 'v.id_vendedor')
+            ->join('usuarios as u', 'v.id_vendedor', '=', 'u.id_usuario')
             ->select(
                 'p.id_producto',
                 'p.nombre',
@@ -53,7 +69,9 @@ class ProductController extends Controller
                 'p.id_vendedor',
                 'v.nombre_negocio',
                 'v.ubicacion as tienda_ubicacion',
-                'v.descripcion as tienda_descripcion'
+                'v.descripcion as tienda_descripcion',
+                'u.nombre as vendedor_nombre',
+                'u.correo as vendedor_correo'
             )
             ->where('p.id_producto', $id)
             ->first();
@@ -62,6 +80,20 @@ class ProductController extends Controller
             return redirect('/productos')->with('error', 'Producto no encontrado');
         }
 
-        return view('detalle-producto', compact('producto'));
+        $comercio = (object) [
+            'id_vendedor' => $producto->id_vendedor,
+            'nombre_negocio' => $producto->nombre_negocio,
+            'ubicacion' => $producto->tienda_ubicacion,
+            'descripcion' => $producto->tienda_descripcion,
+            'vendedor_nombre' => $producto->vendedor_nombre,
+            'vendedor_correo' => $producto->vendedor_correo,
+        ];
+
+        // Load reviews and rating summary
+        $reviews = DB::table('reviews')->where('producto_id', $id)->orderByDesc('created_at')->get();
+        $avgRating = DB::table('reviews')->where('producto_id', $id)->avg('rating') ?: 0;
+        $reviewsCount = DB::table('reviews')->where('producto_id', $id)->count();
+
+        return view('detalle-producto', compact('producto', 'comercio', 'reviews', 'avgRating', 'reviewsCount'));
     }
 }

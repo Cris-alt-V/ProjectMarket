@@ -157,7 +157,7 @@ window.goToStore = function (storeId) {
   if (!storeId) {
     return;
   }
-  window.location.href = `/tienda?comercio_id=${storeId}`;
+  window.location.href = `/tienda?id=${storeId}`;
 };
 
 window.goToCart = function () {
@@ -220,3 +220,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Expose small compatibility helpers used by blade views
+window.updateCartBadge = function() { return MarketplaceApp.updateCartBadge(); };
+window.updateUserDisplay = function() { return MarketplaceApp.updateUserDisplay(); };
+window.showNotification = function(msg) { return MarketplaceApp.showNotification(msg); };
+
+// Expose the app object for legacy inline scripts
+window.MarketplaceApp = MarketplaceApp;

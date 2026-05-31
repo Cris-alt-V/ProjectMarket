@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StoreController extends Controller
 {
@@ -25,16 +26,12 @@ class StoreController extends Controller
     {
         if ($request->hasFile('imagen_file') && $request->file('imagen_file')->isValid()) {
             $file = $request->file('imagen_file');
-            $destination = public_path('imagenes');
-            if (! is_dir($destination)) {
-                mkdir($destination, 0755, true);
-            }
-
             $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
             $filename = uniqid('producto_', true) . '.' . $extension;
-            $file->move($destination, $filename);
+            Storage::disk('public')->makeDirectory('imagenes');
+            $path = $file->storeAs('imagenes', $filename, 'public');
 
-            return '/imagenes/' . $filename;
+            return '/storage/' . $path;
         }
 
         $dataUrl = $request->input('imagen_data');
@@ -50,15 +47,11 @@ class StoreController extends Controller
                     return null;
                 }
 
-                $destination = public_path('imagenes');
-                if (! is_dir($destination)) {
-                    mkdir($destination, 0755, true);
-                }
-
                 $filename = uniqid('producto_', true) . '.' . $extension;
-                file_put_contents($destination . DIRECTORY_SEPARATOR . $filename, $decoded);
+                Storage::disk('public')->makeDirectory('imagenes');
+                Storage::disk('public')->put('imagenes/' . $filename, $decoded);
 
-                return '/imagenes/' . $filename;
+                return '/storage/imagenes/' . $filename;
             }
 
             return null;

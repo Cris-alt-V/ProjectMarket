@@ -28,6 +28,10 @@
                         <span class="badge" id="cartBadge" style="display: none;">0</span>
                     </div>
 
+                    <?php if(session('user')): ?>
+                        <?php echo $__env->make('partials.notifications', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                    <?php endif; ?>
+
                     <div class="user-menu">
                         <div class="user-info" onclick="toggleUserMenu()">
                             <span id="userDisplay">👤</span>

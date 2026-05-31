@@ -59,7 +59,30 @@
         </select>
       </div>
 
-      <div class="products-grid" id="productsContainer"></div>
+      <div class="products-grid" id="productsContainer">
+        <?php if(count($productos) > 0): ?>
+          <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
+              $store = $comercios->firstWhere('id_vendedor', $product->id_vendedor);
+            ?>
+            <div class="product-card" onclick="goToProductDetail(<?php echo e($product->id_producto); ?>)">
+              <img src="<?php echo e($product->imagen_url ?? '/imagenes/blusa.png'); ?>" alt="<?php echo e($product->nombre); ?>" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
+              <div class="product-info">
+                <div class="product-category">General</div>
+                <h3 class="product-name"><?php echo e($product->nombre); ?></h3>
+                <div class="product-store">🏪 <?php echo e($store->nombre_negocio ?? 'Comercio local'); ?></div>
+                <div class="product-description"><?php echo e(\Illuminate\Support\Str::limit($product->descripcion, 120)); ?></div>
+                <div class="product-footer">
+                  <div class="product-price">$<?php echo e(number_format($product->precio, 2)); ?></div>
+                  <div class="product-rating">⭐ <?php echo e(number_format($product->avg_rating ?? 0, 2)); ?> <span>(<?php echo e($product->reviews_count ?? 0); ?>)</span></div>
+                </div>
+              </div>
+            </div>
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        <?php else: ?>
+          <p style="grid-column: 1/-1; text-align: center; color: #666;">No hay productos publicados.</p>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 <?php $__env->stopSection(); ?>
@@ -90,8 +113,8 @@
     comercioId: product.id_vendedor,
     categoria: 'General',
     ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
-    rating: 4.5,
-    vendidos: 0,
+    rating: parseFloat(product.avg_rating) || 0,
+    vendidos: product.reviews_count || 0,
   }));
 
   function createProductCard(product) {
@@ -105,8 +128,14 @@
           <div class="product-store">🏪 ${comercio.nombre}</div>
           <div class="product-description">${product.descripcion}</div>
           <div class="product-footer">
-            <div class="product-price">$${product.precio.toFixed(2)}</div>
-            <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+            <div>
+              <div class="product-price">$${product.precio.toFixed(2)}</div>
+              <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button class="btn btn-primary" onclick="event.stopPropagation(); goToProductDetail(${product.id})">Ver producto</button>
+              <button class="btn btn-secondary" style="background:#f4f4f9; color:#333;" onclick="event.stopPropagation(); goToStore(${product.comercioId})">Ver tienda</button>
+            </div>
           </div>
         </div>
       </div>

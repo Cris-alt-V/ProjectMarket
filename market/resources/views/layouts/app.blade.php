@@ -28,6 +28,10 @@
                         <span class="badge" id="cartBadge" style="display: none;">0</span>
                     </div>
 
+                    @if(session('user'))
+                        @include('partials.notifications')
+                    @endif
+
                     <div class="user-menu">
                         <div class="user-info" onclick="toggleUserMenu()">
                             <span id="userDisplay">👤</span>

@@ -61,7 +61,30 @@
         </select>
       </div>
 
-      <div class="products-grid" id="productsContainer"></div>
+      <div class="products-grid" id="productsContainer">
+        @if(count($productos) > 0)
+          @foreach($productos as $product)
+            @php
+              $store = $comercios->firstWhere('id_vendedor', $product->id_vendedor);
+            @endphp
+            <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})">
+              <img src="{{ $product->imagen_url ?? '/imagenes/blusa.png' }}" alt="{{ $product->nombre }}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
+              <div class="product-info">
+                <div class="product-category">General</div>
+                <h3 class="product-name">{{ $product->nombre }}</h3>
+                <div class="product-store">🏪 {{ $store->nombre_negocio ?? 'Comercio local' }}</div>
+                <div class="product-description">{{ \Illuminate\Support\Str::limit($product->descripcion, 120) }}</div>
+                <div class="product-footer">
+                  <div class="product-price">${{ number_format($product->precio, 2) }}</div>
+                  <div class="product-rating">⭐ {{ number_format($product->avg_rating ?? 0, 2) }} <span>({{ $product->reviews_count ?? 0 }})</span></div>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        @else
+          <p style="grid-column: 1/-1; text-align: center; color: #666;">No hay productos publicados.</p>
+        @endif
+      </div>
     </div>
   </div>
 @endsection
@@ -92,8 +115,8 @@
     comercioId: product.id_vendedor,
     categoria: 'General',
     ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
-    rating: 4.5,
-    vendidos: 0,
+    rating: parseFloat(product.avg_rating) || 0,
+    vendidos: product.reviews_count || 0,
   }));
 
   function createProductCard(product) {
@@ -107,8 +130,14 @@
           <div class="product-store">🏪 ${comercio.nombre}</div>
           <div class="product-description">${product.descripcion}</div>
           <div class="product-footer">
-            <div class="product-price">$${product.precio.toFixed(2)}</div>
-            <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+            <div>
+              <div class="product-price">$${product.precio.toFixed(2)}</div>
+              <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button class="btn btn-primary" onclick="event.stopPropagation(); goToProductDetail(${product.id})">Ver producto</button>
+              <button class="btn btn-secondary" style="background:#f4f4f9; color:#333;" onclick="event.stopPropagation(); goToStore(${product.comercioId})">Ver tienda</button>
+            </div>
           </div>
         </div>
       </div>

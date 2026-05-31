@@ -11,6 +11,14 @@ use Illuminate\Support\Facades\DB;
 Route::get('/', [MarketController::class, 'welcome']);
 Route::get('/productos', [ProductController::class, 'index']);
 Route::get('/producto/{id}', [ProductController::class, 'show']);
+// Reviews
+Route::post('/producto/{id}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->middleware('auth.session');
+
+// Messages between users
+Route::post('/messages/send', [\App\Http\Controllers\MessageController::class, 'send'])->middleware('auth.session');
+
+// Shipping calculation API
+Route::post('/shipping/calculate', [\App\Http\Controllers\ShippingController::class, 'calculate']);
 Route::get('/carrito', [MarketController::class, 'carrito']);
 Route::get('/comercios', [MarketController::class, 'comercios']);
 Route::get('/tienda', [MarketController::class, 'tienda']);
@@ -47,3 +55,7 @@ Route::get('/db-check', function () {
 
 	return view('dbstatus', compact('status', 'message'));
 });
+
+// Notifications API
+Route::get('/notifications', [\App\Http\Controllers\NotificationsController::class, 'index'])->middleware('auth.session');
+Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationsController::class, 'markRead'])->middleware('auth.session');
