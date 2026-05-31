@@ -183,7 +183,7 @@ class AuthController extends Controller
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'nullable|integer|min:0',
-            'imagen_url' => 'nullable|string|max:255',
+            'imagen_url' => 'nullable|string',
         ]);
 
         $id = DB::table('productos')->insertGetId([
@@ -192,7 +192,7 @@ class AuthController extends Controller
             'descripcion' => $request->descripcion,
             'precio' => $request->precio,
             'stock' => $request->stock ?? 0,
-            'imagen_url' => $request->imagen_url,
+            'imagen_url' => $this->normalizeImageUrl($request->imagen_url),
         ], 'id_producto');
 
         return response()->json([

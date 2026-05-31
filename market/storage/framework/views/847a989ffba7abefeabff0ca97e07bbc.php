@@ -47,7 +47,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
           <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-              <img src="<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>" alt="<?php echo e($producto->nombre); ?>" style="width: 100%; height: 200px; object-fit: cover;">
+              <img src="<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>" alt="<?php echo e($producto->nombre); ?>" style="width: 100%; height: 200px; object-fit: contain; background: #f8f8f8;">
               <div style="padding: 15px;">
                 <h4 style="margin: 0 0 10px 0;"><?php echo e($producto->nombre); ?></h4>
                 <p style="color: #666; font-size: 0.9em; margin: 5px 0;"><?php echo e(Str::limit($producto->descripcion, 100)); ?></p>
@@ -80,7 +80,7 @@
       <!-- Formulario agregar producto -->
       <div id="formAgregarProducto" style="display: none; background: white; border-radius: 8px; padding: 30px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         <h3 style="margin-top: 0;">Agregar Nuevo Producto</h3>
-        <form action="/productos/crear" method="POST" style="display: grid; gap: 15px;">
+        <form action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
           <?php echo csrf_field(); ?>
           <div>
             <label>Nombre del Producto</label>
@@ -101,12 +101,21 @@
             </div>
           </div>
           <div>
-            <label>URL de Imagen</label>
-            <input type="text" name="imagen_url" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <label>Imagen del producto</label>
+            <div id="imageDropArea" style="border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; color: #666;">
+              <p style="margin: 0 0 10px 0;">Haz clic, arrastra o pega una imagen aquí</p>
+              <p style="margin: 0; font-size: 0.9em;">También puedes usar el botón de archivo o pegar desde el portapapeles</p>
+            </div>
+            <input type="file" id="imagenFile" name="imagen_file" accept="image/*" style="display: none;">
+            <input type="hidden" id="imagenData" name="imagen_data" value="">
+            <div id="imagePreviewWrapper" style="margin-top: 15px; display: none;">
+              <label>Vista previa</label>
+              <img id="imagePreview" src="" alt="Vista previa de la imagen" style="width: 100%; max-height: 240px; object-fit: contain; border: 1px solid #ddd; border-radius: 8px; display: block; margin-top: 10px;">
+            </div>
           </div>
           <div style="display: flex; gap: 10px;">
             <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Producto</button>
-            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('formAgregarProducto').style.display='none'">Cancelar</button>
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="clearImageInputs(); document.getElementById('formAgregarProducto').style.display='none'">Cancelar</button>
           </div>
         </form>
       </div>
@@ -120,7 +129,110 @@
     MarketplaceApp.showNotification('Edición de productos próximamente');
   }
 
+  function updateImagePreview(src) {
+    const wrapper = document.getElementById('imagePreviewWrapper');
+    const preview = document.getElementById('imagePreview');
+    if (! wrapper || !preview) {
+      return;
+    }
+
+    if (src) {
+      preview.src = src;
+      wrapper.style.display = 'block';
+    } else {
+      preview.src = '';
+      wrapper.style.display = 'none';
+    }
+  }
+
+  function clearImageInputs() {
+    const fileInput = document.getElementById('imagenFile');
+    const dataInput = document.getElementById('imagenData');
+    if (fileInput) {
+      fileInput.value = null;
+    }
+    if (dataInput) {
+      dataInput.value = '';
+    }
+    updateImagePreview(null);
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
+    const dropArea = document.getElementById('imageDropArea');
+    const fileInput = document.getElementById('imagenFile');
+    const dataInput = document.getElementById('imagenData');
+
+    if (dropArea && fileInput) {
+      dropArea.addEventListener('click', function() {
+        fileInput.click();
+      });
+
+      dropArea.addEventListener('dragover', function(event) {
+        event.preventDefault();
+        dropArea.style.borderColor = '#667eea';
+      });
+
+      dropArea.addEventListener('dragleave', function() {
+        dropArea.style.borderColor = '#ccc';
+      });
+
+      dropArea.addEventListener('drop', function(event) {
+        event.preventDefault();
+        dropArea.style.borderColor = '#ccc';
+        const files = event.dataTransfer.files;
+        if (files && files.length > 0) {
+          const dt = new DataTransfer();
+          dt.items.add(files[0]);
+          fileInput.files = dt.files;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            dataInput.value = '';
+            updateImagePreview(e.target.result);
+          };
+          reader.readAsDataURL(files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', function() {
+        if (fileInput.files && fileInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            dataInput.value = '';
+            updateImagePreview(e.target.result);
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        } else {
+          updateImagePreview(null);
+        }
+      });
+
+      dropArea.addEventListener('paste', function(event) {
+        const items = event.clipboardData?.items;
+        if (!items) {
+          return;
+        }
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.indexOf('image') === 0) {
+            const blob = item.getAsFile();
+            if (blob) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                dataInput.value = e.target.result;
+                if (fileInput) {
+                  fileInput.value = null;
+                }
+                updateImagePreview(e.target.result);
+              };
+              reader.readAsDataURL(blob);
+              event.preventDefault();
+            }
+          }
+        }
+      });
+    }
+
     updateUserDisplay();
     updateCartBadge();
   });

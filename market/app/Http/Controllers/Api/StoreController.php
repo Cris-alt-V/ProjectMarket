@@ -57,7 +57,7 @@ class StoreController extends Controller
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'imagen_url' => 'nullable|string|max:255',
+            'imagen_url' => 'nullable|string',
         ]);
 
         $vendor = $this->vendorForUser($user);
@@ -65,13 +65,15 @@ class StoreController extends Controller
             return response()->json(['message' => 'Vendedor no encontrado'], 404);
         }
 
+        $imagen = $this->normalizeImageUrl($request->imagen_url);
+
         $id = DB::table('productos')->insertGetId([
             'id_vendedor' => $vendor->id_vendedor,
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
             'precio' => $request->precio,
             'stock' => $request->stock,
-            'imagen_url' => $request->imagen_url,
+            'imagen_url' => $imagen,
         ], 'id_producto');
 
         return response()->json(['message' => 'Producto creado', 'id' => $id]);
@@ -99,15 +101,17 @@ class StoreController extends Controller
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'imagen_url' => 'nullable|string|max:255',
+            'imagen_url' => 'nullable|string',
         ]);
+
+        $imagen = $this->normalizeImageUrl($request->imagen_url);
 
         DB::table('productos')->where('id_producto', $id)->update([
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
             'precio' => $request->precio,
             'stock' => $request->stock,
-            'imagen_url' => $request->imagen_url,
+            'imagen_url' => $imagen,
         ]);
 
         return response()->json(['message' => 'Producto actualizado']);

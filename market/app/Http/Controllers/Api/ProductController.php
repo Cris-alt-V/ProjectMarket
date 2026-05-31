@@ -25,13 +25,15 @@ class ProductController extends Controller
             )
             ->get()
             ->map(function ($product) {
+                $foto = $this->normalizeImageUrl($product->imagen_url) ?: '/imagenes/blusa.png';
+
                 return [
                     'id' => $product->id_producto,
                     'nombre' => $product->nombre,
                     'descripcion' => $product->descripcion,
                     'precio' => (float) $product->precio,
                     'stock' => $product->stock,
-                    'foto' => $product->imagen_url ?: '/imagenes/blusa.png',
+                    'foto' => $foto,
                     'comercioId' => $product->id_vendedor,
                     'categoria' => 'General',
                     'ubicacion' => $product->tienda_ubicacion,
