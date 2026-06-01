@@ -135,6 +135,11 @@ const MarketplaceApp = {
     return Boolean(this.getCurrentUser());
   },
 
+  isOwnProduct(product) {
+    const user = window.currentSessionUser || this.getCurrentUser();
+    return Boolean(user && product && Number(user.id_usuario) === Number(product.comercioId));
+  },
+
   getCart() {
     try {
       const user = this.getCurrentUser();
@@ -179,6 +184,11 @@ const MarketplaceApp = {
       setTimeout(() => {
         window.location.href = '/registro';
       }, 1500);
+      return;
+    }
+
+    if (this.isOwnProduct(product)) {
+      this.showNotification('No puedes agregar tu propio producto al carrito.', 'error');
       return;
     }
 

@@ -34,6 +34,7 @@ class StoreController extends Controller
                 $path = $file->storeAs('imagenes', $filename, 'public');
 
                 if ($path) {
+                    $this->mirrorStoredImageToPublicStorage($path);
                     return '/storage/' . $path;
                 }
             } catch (\Exception $e) {
@@ -63,6 +64,7 @@ class StoreController extends Controller
                     $saved = Storage::disk('public')->put('imagenes/' . $filename, $decoded);
 
                     if ($saved) {
+                        $this->mirrorStoredImageToPublicStorage('imagenes/' . $filename);
                         return '/storage/imagenes/' . $filename;
                     }
                 } catch (\Exception $e) {
@@ -72,6 +74,29 @@ class StoreController extends Controller
         }
 
         return null;
+    }
+
+    protected function mirrorStoredImageToPublicStorage(string $path): void
+    {
+        $publicStoragePath = public_path('storage');
+
+        if (is_link($publicStoragePath)) {
+            return;
+        }
+
+        $source = Storage::disk('public')->path($path);
+        $target = public_path('storage/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path));
+        $targetDirectory = dirname($target);
+
+        if (! is_file($source)) {
+            return;
+        }
+
+        if (! is_dir($targetDirectory)) {
+            mkdir($targetDirectory, 0755, true);
+        }
+
+        copy($source, $target);
     }
 
     public function store(Request $request)

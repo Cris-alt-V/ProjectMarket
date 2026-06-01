@@ -16,6 +16,8 @@ Route::post('/producto/{id}/review', [\App\Http\Controllers\ReviewController::cl
 
 // Messages between users
 Route::post('/messages/send', [\App\Http\Controllers\MessageController::class, 'send'])->middleware('auth.session');
+Route::get('/messages/conversations', [\App\Http\Controllers\MessageController::class, 'conversations'])->middleware('auth.session');
+Route::get('/messages/product/{id}', [\App\Http\Controllers\MessageController::class, 'productThread'])->middleware('auth.session');
 
 // Shipping calculation API
 Route::post('/shipping/calculate', [\App\Http\Controllers\ShippingController::class, 'calculate']);

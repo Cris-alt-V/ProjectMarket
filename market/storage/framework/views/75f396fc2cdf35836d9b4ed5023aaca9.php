@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Marketplace Local - Inicio'); ?>
 
-@section('title', 'Marketplace Local - Inicio')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 20px; border-radius: 8px; margin-bottom: 40px; text-align: center;">
     <h2 style="font-size: 2.5em; margin-bottom: 15px;">Descubre Productos Locales</h2>
     <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.9;">Apoya a tus negocios locales y encuentra lo que necesitas en tu comunidad</p>
@@ -62,12 +60,12 @@
     <h2 class="section-title">🏪 Comercios Destacados</h2>
     <div class="store-grid" id="storesGrid"></div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-  const pageStores = @json($comercios);
-  const pageProducts = @json($productos);
+  const pageStores = <?php echo json_encode($comercios, 15, 512) ?>;
+  const pageProducts = <?php echo json_encode($productos, 15, 512) ?>;
 
   function initializeHomePage() {
     if (!window.MarketplaceApp) {
@@ -176,4 +174,6 @@
     initializeHomePage();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\crist\OneDrive\Desktop\frere\ProjectMarket\market\resources\views/welcome.blade.php ENDPATH**/ ?>

@@ -1,17 +1,15 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Tienda - Marketplace Local'); ?>
 
-@section('title', 'Tienda - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <div class="store-header" id="storeHeader">
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; border-radius: 8px; margin-bottom: 40px; text-align: center;">
-      <h1>{{ $comercio->nombre_negocio }}</h1>
-      <p>{{ $comercio->descripcion }}</p>
+      <h1><?php echo e($comercio->nombre_negocio); ?></h1>
+      <p><?php echo e($comercio->descripcion); ?></p>
       <div class="store-header-info" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
         <div class="info-box"><strong>⭐ Calificación</strong> 4.7/5.0</div>
-        <div class="info-box"><strong>📍 Ubicación</strong> {{ $comercio->ubicacion ?? 'Ubicación no disponible' }}</div>
-        <div class="info-box"><strong>📦 Productos</strong> {{ $productos->count() }} disponibles</div>
-        <div class="info-box"><strong>📞 Contacto</strong> {{ $comercio->telefono ?? '(Sin teléfono)' }}</div>
+        <div class="info-box"><strong>📍 Ubicación</strong> <?php echo e($comercio->ubicacion ?? 'Ubicación no disponible'); ?></div>
+        <div class="info-box"><strong>📦 Productos</strong> <?php echo e($productos->count()); ?> disponibles</div>
+        <div class="info-box"><strong>📞 Contacto</strong> <?php echo e($comercio->telefono ?? '(Sin teléfono)'); ?></div>
       </div>
     </div>
   </div>
@@ -42,37 +40,37 @@
   <section class="products-section">
     <h2 class="section-title">Productos de esta Tienda</h2>
     <div class="products-grid" id="productsContainer">
-      @forelse ($productos as $producto)
-        <div class="product-card" onclick="goToProductDetail({{ $producto->id_producto }})">
-          <img src="{{ $producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : '' }}" alt="{{ $producto->nombre }}" class="product-image">
+      <?php $__empty_1 = true; $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <div class="product-card" onclick="goToProductDetail(<?php echo e($producto->id_producto); ?>)">
+          <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : ''); ?>" alt="<?php echo e($producto->nombre); ?>" class="product-image">
           <div class="product-info">
-            <div class="product-category">{{ $producto->categoria ?? 'General' }}</div>
-            <h3 class="product-name">{{ $producto->nombre }}</h3>
-            <div class="product-store">🏪 {{ $comercio->nombre_negocio }}</div>
-            <div class="product-description">{{ $producto->descripcion }}</div>
+            <div class="product-category"><?php echo e($producto->categoria ?? 'General'); ?></div>
+            <h3 class="product-name"><?php echo e($producto->nombre); ?></h3>
+            <div class="product-store">🏪 <?php echo e($comercio->nombre_negocio); ?></div>
+            <div class="product-description"><?php echo e($producto->descripcion); ?></div>
             <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
-              <span>Existencias: {{ $producto->stock > 0 ? $producto->stock : 'sin existencias' }}</span>
+              <span>Existencias: <?php echo e($producto->stock > 0 ? $producto->stock : 'sin existencias'); ?></span>
             </div>
             <div class="product-footer">
-              <div class="product-price">${{ number_format($producto->precio, 2) }}</div>
+              <div class="product-price">$<?php echo e(number_format($producto->precio, 2)); ?></div>
               <div class="product-rating">⭐ 4.5 <span>(0)</span></div>
             </div>
             <div style="margin-top: 12px;">
-              <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $producto->id_producto }});" {{ $producto->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : '' }}>{{ $producto->stock > 0 ? 'Agregar al Carrito' : 'Agotado' }}</button>
+              <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById(<?php echo e($producto->id_producto); ?>);" <?php echo e($producto->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : ''); ?>><?php echo e($producto->stock > 0 ? 'Agregar al Carrito' : 'Agotado'); ?></button>
             </div>
           </div>
         </div>
-      @empty
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
         <p style="text-align: center; grid-column: 1/-1; color: #666;">No se encontraron productos</p>
-      @endforelse
+      <?php endif; ?>
     </div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-  const store = @json($comercio);
-  const pageProducts = @json($productos);
+  const store = <?php echo json_encode($comercio, 15, 512) ?>;
+  const pageProducts = <?php echo json_encode($productos, 15, 512) ?>;
 
   function initializeTiendaPage() {
     if (!window.MarketplaceApp) {
@@ -181,4 +179,6 @@
     initializeTiendaPage();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\crist\OneDrive\Desktop\frere\ProjectMarket\market\resources\views/tienda.blade.php ENDPATH**/ ?>
