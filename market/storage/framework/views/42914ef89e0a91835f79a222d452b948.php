@@ -16,6 +16,7 @@
     <div class="account-container" style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; max-width: 1200px; margin: 0 auto;">
       <div class="sidebar" style="display: flex; flex-direction: column; gap: 10px;">
         <button class="tab-btn active" onclick="switchTab('profile')" style="padding: 10px 15px; text-align: left; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">👤 Perfil</button>
+        <button class="tab-btn" onclick="switchTab('notifications')" style="padding: 10px 15px; text-align: left; background: transparent; color: #333; border: none; border-radius: 4px; cursor: pointer;">🔔 Notificaciones <span id="sidebarNotifCount" style="background:#e53e3e;color:#fff;border-radius:10px;padding:2px 6px;margin-left:8px;font-size:12px;display: inline-block;">0</span></button>
         <button class="tab-btn" onclick="switchTab('orders')" style="padding: 10px 15px; text-align: left; background: transparent; color: #333; border: none; border-radius: 4px; cursor: pointer;">📦 Mis Compras</button>
         <button class="tab-btn" onclick="switchTab('addresses')" style="padding: 10px 15px; text-align: left; background: transparent; color: #333; border: none; border-radius: 4px; cursor: pointer;">📍 Direcciones</button>
         <button class="tab-btn" onclick="switchTab('preferences')" style="padding: 10px 15px; text-align: left; background: transparent; color: #333; border: none; border-radius: 4px; cursor: pointer;">⚙️ Preferencias</button>
@@ -44,6 +45,39 @@
             </div>
           </div>
           <button class="btn btn-primary" onclick="switchTab('edit-profile')">Editar Perfil</button>
+        </div>
+
+        <!-- Notificaciones -->
+        <div id="notificationsTab" class="tab-content" style="display: none;">
+          <h2>Notificaciones</h2>
+          <div style="margin-bottom:12px;">
+            <button class="btn btn-secondary" onclick="markAllRead()">Marcar todas como leídas</button>
+          </div>
+
+          <div style="background: white; border-radius:8px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+            <?php if(!empty($notifications) && count($notifications) > 0): ?>
+              <ul style="list-style:none;padding:0;margin:0;">
+                <?php $__currentLoopData = $notifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $n): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                  <?php $data = json_decode($n->data, true); ?>
+                  <li style="padding:12px;border-bottom:1px solid #f2f2f2; background: <?php echo e($n->read_at ? 'transparent' : '#f9fbff'); ?>; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                      <div style="font-weight:600"><?php echo e($data['message'] ?? $n->type); ?></div>
+                      <div style="font-size:12px;color:#666;margin-top:6px"><?php echo e(date('d/m/Y H:i', strtotime($n->created_at))); ?></div>
+                    </div>
+                    <div style="margin-left:12px;">
+                      <?php if(!$n->read_at): ?>
+                        <button class="btn btn-primary" onclick="markRead('<?php echo e($n->id); ?>', this)">Marcar leído</button>
+                      <?php else: ?>
+                        <span style="color:#666;font-size:12px">Leído</span>
+                      <?php endif; ?>
+                    </div>
+                  </li>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+              </ul>
+            <?php else: ?>
+              <div style="padding:20px;color:#666">No tienes notificaciones.</div>
+            <?php endif; ?>
+          </div>
         </div>
 
         <!-- Editar Perfil -->
@@ -137,7 +171,29 @@
   document.addEventListener('DOMContentLoaded', function() {
     updateUserDisplay();
     updateCartBadge();
+    // set sidebar notification count
+    const sidebarCount = document.getElementById('sidebarNotifCount');
+    if(sidebarCount){
+      const unread = <?php echo e(isset($unreadCount) ? $unreadCount : 0); ?>;
+      if(unread && unread > 0){ sidebarCount.textContent = unread; } else { sidebarCount.style.display = 'none'; }
+    }
   });
+
+  function markRead(id, btn){
+    fetch('/notifications/' + id + '/read', { method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
+      .then(r => {
+        if(r.ok){
+          if(btn) btn.parentElement.innerHTML = '<span style="color:#666;font-size:12px">Leído</span>';
+          const sc = document.getElementById('sidebarNotifCount');
+          if(sc){ sc.textContent = Math.max(0, parseInt(sc.textContent||'0') - 1); if(sc.textContent === '0') sc.style.display='none'; }
+        }
+      });
+  }
+
+  function markAllRead(){
+    // mark each notification read by iterating visible buttons
+    document.querySelectorAll('#notificationsTab button').forEach(b => { b.click && b.click(); });
+  }
 </script>
 <?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\castr\OneDrive\Desktop\laravel\hola\ProjectMarket\market\resources\views/micuenta.blade.php ENDPATH**/ ?>

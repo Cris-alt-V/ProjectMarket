@@ -33,6 +33,7 @@
         <label for="filterCategory">📁 Categoría</label>
         <select id="filterCategory">
           <option value="">Todas las categorías</option>
+          <option value="General">General</option>
           <option value="Accesorios">Accesorios</option>
           <option value="Ropa">Ropa</option>
           <option value="Alimentos">Alimentos</option>

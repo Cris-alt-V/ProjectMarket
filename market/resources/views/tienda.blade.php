@@ -50,12 +50,15 @@
             <h3 class="product-name">{{ $producto->nombre }}</h3>
             <div class="product-store">🏪 {{ $comercio->nombre_negocio }}</div>
             <div class="product-description">{{ $producto->descripcion }}</div>
+            <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+              <span>Existencias: {{ $producto->stock > 0 ? $producto->stock : 'sin existencias' }}</span>
+            </div>
             <div class="product-footer">
               <div class="product-price">${{ number_format($producto->precio, 2) }}</div>
               <div class="product-rating">⭐ 4.5 <span>(0)</span></div>
             </div>
             <div style="margin-top: 12px;">
-              <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $producto->id_producto }});">Agregar al Carrito</button>
+              <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $producto->id_producto }});" {{ $producto->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : '' }}>{{ $producto->stock > 0 ? 'Agregar al Carrito' : 'Agotado' }}</button>
             </div>
           </div>
         </div>
@@ -82,7 +85,7 @@
       nombre: product.nombre,
       descripcion: product.descripcion,
       precio: parseFloat(product.precio) || 0,
-      stock: product.stock,
+      stock: Number(product.stock || 0),
       foto: product.imagen_url || '/imagenes/blusa.png',
       comercioId: product.id_vendedor,
       categoria: product.categoria || 'General',
@@ -90,6 +93,7 @@
       rating: 4.5,
       vendidos: 0,
     }));
+    MarketplaceApp.applyStockAdjustments(MarketplaceApp.productos);
 
     initializePage();
   }
@@ -103,12 +107,15 @@
           <h3 class="product-name">${product.nombre}</h3>
           <div class="product-store">🏪 ${store.nombre_negocio}</div>
           <div class="product-description">${product.descripcion}</div>
+          <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+            <span>Existencias: ${product.stock > 0 ? product.stock : 'sin existencias'}</span>
+          </div>
           <div class="product-footer">
             <div class="product-price">$${product.precio.toFixed(2)}</div>
             <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
           </div>
           <div style="margin-top: 12px;">
-            <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById(${product.id});">Agregar al Carrito</button>
+            <button class="btn btn-primary" style="background:${product.stock > 0 ? '#4caf50' : '#ccc'}; cursor:${product.stock > 0 ? 'pointer' : 'not-allowed'};" onclick="event.stopPropagation(); ${product.stock > 0 ? `addToCartById(${product.id})` : ''}" ${product.stock > 0 ? '' : 'disabled'}>${product.stock > 0 ? 'Agregar al Carrito' : 'Agotado'}</button>
           </div>
         </div>
       </div>

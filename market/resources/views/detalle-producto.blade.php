@@ -14,6 +14,7 @@
         <div class="product-meta" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
           <div class="meta-item"><strong>Precio:</strong> <span id="productPrice">${{ number_format($producto->precio, 2) }}</span></div>
           <div class="meta-item"><strong>Categoría:</strong> <span id="productCategory">{{ $producto->categoria ?? 'General' }}</span></div>
+          <div class="meta-item"><strong>Existencias:</strong> <span id="productStock">{{ $producto->stock > 0 ? $producto->stock : 'sin existencias' }}</span></div>
           <div class="meta-item"><strong>Ubicación:</strong> <span id="productLocation">{{ $comercio->ubicacion }}</span></div>
         </div>
         <div class="store-info" style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -118,10 +119,18 @@
       categoria: `{{ addslashes($producto->categoria ?? 'General') }}`,
       ubicacion: `{{ addslashes($comercio->ubicacion) }}`,
       comercioId: {{ $comercio->id_vendedor }},
+      stock: parseInt({{ $producto->stock ?? 0 }}, 10) || 0,
     };
 
     const btnAdd = document.getElementById('btnAddToCart');
     if (btnAdd) {
+      if (product.stock <= 0) {
+        btnAdd.disabled = true;
+        btnAdd.textContent = 'Agotado';
+        btnAdd.style.opacity = '0.6';
+        btnAdd.style.cursor = 'not-allowed';
+      }
+
       btnAdd.addEventListener('click', function() {
         const quantity = parseInt(document.getElementById('productQuantity').value, 10) || 1;
         try {

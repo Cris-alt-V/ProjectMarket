@@ -1,5 +1,6 @@
 const MarketplaceApp = {
   categorias: [
+    { nombre: 'General', icono: '📦' },
     { nombre: 'Accesorios', icono: '👜' },
     { nombre: 'Ropa', icono: '👗' },
     { nombre: 'Alimentos', icono: '🍎' },
@@ -54,6 +55,53 @@ const MarketplaceApp = {
     }
   },
 
+  getStockAdjustmentsKey() {
+    return 'marketplaceStockAdjustments';
+  },
+
+  getStockAdjustments() {
+    try {
+      const raw = localStorage.getItem(this.getStockAdjustmentsKey());
+      return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+      console.error('Unable to read stock adjustments', error);
+      return {};
+    }
+  },
+
+  setStockAdjustments(adjustments) {
+    try {
+      localStorage.setItem(this.getStockAdjustmentsKey(), JSON.stringify(adjustments));
+    } catch (error) {
+      console.error('Unable to save stock adjustments', error);
+    }
+  },
+
+  getAvailableStock(productId) {
+    const product = this.getProductById(productId);
+    if (!product) {
+      return 0;
+    }
+    return Number(product.stock || 0);
+  },
+
+  applyStockAdjustments(products) {
+    const adjustments = this.getStockAdjustments();
+    products.forEach(product => {
+      const adjustment = Number(adjustments[product.id] || 0);
+      product.stock = Math.max(0, Number(product.stock || 0) - adjustment);
+    });
+  },
+
+  adjustStock(productId, quantity) {
+    const adjustments = this.getStockAdjustments();
+    adjustments[productId] = Math.max(0, Number(adjustments[productId] || 0) + Number(quantity));
+    if (adjustments[productId] <= 0) {
+      delete adjustments[productId];
+    }
+    this.setStockAdjustments(adjustments);
+  },
+
   setCurrentUser(user) {
     try {
       if (user) {
@@ -81,6 +129,10 @@ const MarketplaceApp = {
   getCartKey() {
     const user = this.getCurrentUser();
     return user ? `cart_${user.id_usuario}` : 'cart_guest';
+  },
+
+  isAuthenticated() {
+    return Boolean(this.getCurrentUser());
   },
 
   getCart() {
@@ -122,19 +174,49 @@ const MarketplaceApp = {
   },
 
   addToCart(product, quantity = 1) {
+    if (!this.isAuthenticated()) {
+      this.showNotification('Debes iniciar sesión para agregar productos al carrito.', 'error');
+      setTimeout(() => {
+        window.location.href = '/registro';
+      }, 1500);
+      return;
+    }
+
     const cart = this.getCart();
     const existing = cart.find((item) => item.id === product.id);
+    const currentQuantity = existing ? Number(existing.quantity || 0) : 0;
+
+    let availableStock;
+    const productFromApp = this.getProductById(product.id);
+    if (productFromApp) {
+      availableStock = this.getAvailableStock(product.id);
+    } else {
+      const adjustments = this.getStockAdjustments();
+      availableStock = Math.max(0, Number(product.stock || 0) - Number(adjustments[product.id] || 0));
+    }
+
+    if (availableStock <= 0) {
+      this.showNotification('No hay existencias disponibles para este producto.', 'error');
+      return;
+    }
+
+    if (currentQuantity + quantity > availableStock) {
+      this.showNotification(`Solo quedan ${availableStock} unidades disponibles. Ajustá la cantidad.`, 'error');
+      return;
+    }
+
     if (existing) {
-      existing.quantity += quantity;
+      existing.quantity = currentQuantity + quantity;
     } else {
       cart.push({
         ...product,
         quantity: quantity,
       });
     }
+
     this.setCart(cart);
     const mensaje = quantity > 1 ? `${quantity} unidades agregadas al carrito` : 'Producto agregado al carrito';
-    this.showNotification(mensaje);
+    this.showNotification(mensaje, 'success');
   },
 
   getComercioById(id) {
@@ -153,6 +235,19 @@ const MarketplaceApp = {
       badge.textContent = totalItems;
       badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
     }
+  },
+
+  decrementStockForCart(cartItems) {
+    cartItems.forEach((item) => {
+      const product = this.getProductById(item.id);
+      if (!product) {
+        return;
+      }
+      const purchasedQuantity = Number(item.quantity || 0);
+      const availableStock = Number(product.stock || 0);
+      product.stock = Math.max(0, availableStock - purchasedQuantity);
+      this.adjustStock(item.id, purchasedQuantity);
+    });
   },
 
   updateUserDisplay() {
@@ -257,6 +352,13 @@ window.addToCart = function (product, quantity = 1) {
 
 window.addToCartById = function (productId, quantity = 1) {
   if (!window.MarketplaceApp || typeof MarketplaceApp.getProductById !== 'function') {
+    return;
+  }
+  if (!MarketplaceApp.isAuthenticated()) {
+    MarketplaceApp.showNotification('Debes iniciar sesión para agregar productos al carrito.', 'error');
+    setTimeout(() => {
+      window.location.href = '/registro';
+    }, 1500);
     return;
   }
   const product = MarketplaceApp.getProductById(productId);

@@ -60,10 +60,17 @@
             @if(!empty($notifications) && count($notifications) > 0)
               <ul style="list-style:none;padding:0;margin:0;">
                 @foreach($notifications as $n)
-                  @php $data = json_decode($n->data, true); @endphp
+                  @php
+                    $data = json_decode($n->data, true);
+                    if ($data === null && !empty($n->data)) {
+                        $data = ['message' => trim($n->data)];
+                    }
+                    $data = $data ?: [];
+                    $text = $data['message'] ?? ($data['producto_nombre'] ? "Hay una actualización en tu producto {$data['producto_nombre']}" : $n->type);
+                  @endphp
                   <li style="padding:12px;border-bottom:1px solid #f2f2f2; background: {{ $n->read_at ? 'transparent' : '#f9fbff' }}; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                      <div style="font-weight:600">{{ $data['message'] ?? $n->type }}</div>
+                      <div style="font-weight:600">{{ $text }}</div>
                       <div style="font-size:12px;color:#666;margin-top:6px">{{ date('d/m/Y H:i', strtotime($n->created_at)) }}</div>
                     </div>
                     <div style="margin-left:12px;">

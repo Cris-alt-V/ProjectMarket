@@ -13,6 +13,7 @@
         <label for="filterCategory">📁 Categoría</label>
         <select id="filterCategory" onchange="applyFilters()">
           <option value="">Todas las categorías</option>
+          <option value="General">General</option>
           <option value="Accesorios">Accesorios</option>
           <option value="Ropa">Ropa</option>
           <option value="Alimentos">Alimentos</option>
@@ -74,12 +75,15 @@
                 <h3 class="product-name">{{ $product->nombre }}</h3>
                 <div class="product-store">🏪 {{ $store->nombre_negocio ?? 'Comercio local' }}</div>
                 <div class="product-description">{{ \Illuminate\Support\Str::limit($product->descripcion, 120) }}</div>
+                <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+                  <span>Existencias: {{ $product->stock > 0 ? $product->stock : 'sin existencias' }}</span>
+                </div>
                 <div class="product-footer">
                   <div class="product-price">${{ number_format($product->precio, 2) }}</div>
                   <div class="product-rating">⭐ {{ number_format($product->avg_rating ?? 0, 2) }} <span>({{ $product->reviews_count ?? 0 }})</span></div>
                 </div>
                 <div style="margin-top: 12px;">
-                  <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $product->id_producto }});">Agregar al Carrito</button>
+                  <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $product->id_producto }});" {{ $product->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : '' }}>{{ $product->stock > 0 ? 'Agregar al Carrito' : 'Agotado' }}</button>
                 </div>
               </div>
             </div>
@@ -127,6 +131,7 @@
       rating: parseFloat(product.avg_rating) || 0,
       vendidos: product.reviews_count || 0,
     }));
+    MarketplaceApp.applyStockAdjustments(MarketplaceApp.productos);
 
     const query = getSearchQuery();
     if (query) {
@@ -154,14 +159,19 @@
 
   function createProductCard(product) {
     const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
-    return `
+      const isOutOfStock = Number(product.stock) <= 0;
+      const stockLabel = isOutOfStock ? 'sin existencias' : product.stock;
+      return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
         <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="product-info">
-          <div class="product-category">${product.categoria}</div>
+          <div class="product-category">Categoría: ${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
           <div class="product-store">🏪 ${comercio.nombre}</div>
           <div class="product-description">${product.descripcion}</div>
+          <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+            <span>Existencias: ${stockLabel}</span>
+          </div>
           <div class="product-footer">
             <div>
               <div class="product-price">$${product.precio.toFixed(2)}</div>
@@ -170,7 +180,7 @@
             <div style="display:flex; flex-direction:column; gap:8px;">
               <button class="btn btn-primary" onclick="event.stopPropagation(); goToProductDetail(${product.id})">Ver producto</button>
               <button class="btn btn-secondary" style="background:#f4f4f9; color:#333;" onclick="event.stopPropagation(); goToStore(${product.comercioId})">Ver tienda</button>
-              <button class="btn btn-primary" style="background:#4caf50;" onclick="event.stopPropagation(); addToCartById(${product.id});">Agregar al Carrito</button>
+              <button class="btn btn-primary" style="background:${isOutOfStock ? '#ccc' : '#4caf50'}; cursor:${isOutOfStock ? 'not-allowed' : 'pointer'};" onclick="event.stopPropagation(); ${isOutOfStock ? '' : `addToCartById(${product.id})`}" ${isOutOfStock ? 'disabled' : ''}>${isOutOfStock ? 'Agotado' : 'Agregar al Carrito'}</button>
             </div>
           </div>
         </div>
@@ -181,6 +191,11 @@
   function updateResultCount(products) {
     const countText = products.length > 0 ? `Mostrando ${products.length} productos` : 'No se encontraron productos';
     document.getElementById('resultCount').textContent = countText;
+  }
+
+  function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name) || '';
   }
 
   function getSearchQuery() {

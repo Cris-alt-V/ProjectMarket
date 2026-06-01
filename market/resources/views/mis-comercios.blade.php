@@ -99,6 +99,7 @@
             <label>Categoría</label>
             <select id="productoCategoria" name="categoria" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
               <option value="">Selecciona categoría</option>
+              <option value="General">General</option>
               <option value="Accesorios">Accesorios</option>
               <option value="Ropa">Ropa</option>
               <option value="Alimentos">Alimentos</option>

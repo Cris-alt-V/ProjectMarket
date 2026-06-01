@@ -42,15 +42,21 @@
     <div class="products-grid" id="productsContainer">
       <?php $__empty_1 = true; $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
         <div class="product-card" onclick="goToProductDetail(<?php echo e($producto->id_producto); ?>)">
-          <img src="<?php echo e($producto->imagen_url); ?>" alt="<?php echo e($producto->nombre); ?>" class="product-image" onerror="this.style.display='none';">
+          <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : asset('imagenes/blusa.png')); ?>" alt="<?php echo e($producto->nombre); ?>" class="product-image" onerror="this.onerror=null;this.src='<?php echo e(asset('imagenes/blusa.png')); ?>';">
           <div class="product-info">
-            <div class="product-category">General</div>
+            <div class="product-category"><?php echo e($producto->categoria ?? 'General'); ?></div>
             <h3 class="product-name"><?php echo e($producto->nombre); ?></h3>
             <div class="product-store">🏪 <?php echo e($comercio->nombre_negocio); ?></div>
             <div class="product-description"><?php echo e($producto->descripcion); ?></div>
+            <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+              <span>Existencias: <?php echo e($producto->stock > 0 ? $producto->stock : 'sin existencias'); ?></span>
+            </div>
             <div class="product-footer">
               <div class="product-price">$<?php echo e(number_format($producto->precio, 2)); ?></div>
               <div class="product-rating">⭐ 4.5 <span>(0)</span></div>
+            </div>
+            <div style="margin-top: 12px;">
+              <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById(<?php echo e($producto->id_producto); ?>);" <?php echo e($producto->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : ''); ?>><?php echo e($producto->stock > 0 ? 'Agregar al Carrito' : 'Agotado'); ?></button>
             </div>
           </div>
         </div>
@@ -77,7 +83,7 @@
       nombre: product.nombre,
       descripcion: product.descripcion,
       precio: parseFloat(product.precio) || 0,
-      stock: product.stock,
+      stock: Number(product.stock || 0),
       foto: product.imagen_url || '/imagenes/blusa.png',
       comercioId: product.id_vendedor,
       categoria: product.categoria || 'General',
@@ -85,6 +91,7 @@
       rating: 4.5,
       vendidos: 0,
     }));
+    MarketplaceApp.applyStockAdjustments(MarketplaceApp.productos);
 
     initializePage();
   }
@@ -92,15 +99,21 @@
   function createProductCard(product) {
     return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
-        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.style.display='none';">
+        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="product-info">
           <div class="product-category">${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
           <div class="product-store">🏪 ${store.nombre_negocio}</div>
           <div class="product-description">${product.descripcion}</div>
+          <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
+            <span>Existencias: ${product.stock > 0 ? product.stock : 'sin existencias'}</span>
+          </div>
           <div class="product-footer">
             <div class="product-price">$${product.precio.toFixed(2)}</div>
             <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+          </div>
+          <div style="margin-top: 12px;">
+            <button class="btn btn-primary" style="background:${product.stock > 0 ? '#4caf50' : '#ccc'}; cursor:${product.stock > 0 ? 'pointer' : 'not-allowed'};" onclick="event.stopPropagation(); ${product.stock > 0 ? `addToCartById(${product.id})` : ''}" ${product.stock > 0 ? '' : 'disabled'}>${product.stock > 0 ? 'Agregar al Carrito' : 'Agotado'}</button>
           </div>
         </div>
       </div>

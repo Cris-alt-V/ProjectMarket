@@ -18,7 +18,8 @@
         const list = document.getElementById('notificationsList');
 
         function renderNotifications(data){
-            const { unread, notifications } = data;
+            const { unread, notifications = [] } = data;
+            const notificationList = Array.isArray(notifications) ? notifications : [];
             if(unread && unread > 0){
                 badge.style.display = 'inline-block';
                 badge.textContent = unread;
@@ -27,22 +28,29 @@
             }
 
             list.innerHTML = '';
-            if(notifications.length === 0){
+            if(notificationList.length === 0){
                 list.innerHTML = '<div style="padding:12px;color:#666">No hay notificaciones.</div>';
                 return;
             }
 
-            notifications.forEach(n => {
+            notificationList.forEach(n => {
                 const item = document.createElement('div');
                 item.style.padding = '10px';
                 item.style.borderBottom = '1px solid #f5f5f5';
                 item.style.cursor = 'pointer';
                 if(!n.read_at){ item.style.background = '#f9fbff'; }
-                const text = (n.data && n.data.message)
-                    ? n.data.message
-                    : (n.data && n.data.producto_nombre)
-                        ? `Hay una actualización en tu producto ${n.data.producto_nombre}`
-                        : (n.type || 'Notificación');
+
+                let data = n.data;
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        data = { message: data };
+                    }
+                }
+                data = data || {};
+
+                const text = n.text || data.message || (data.producto_nombre ? `Hay una actualización en tu producto ${data.producto_nombre}` : (n.type || 'Notificación'));
                 item.innerHTML = `<div style="font-weight:600">${text}</div><div style="font-size:12px;color:#666;margin-top:4px">${new Date(n.created_at).toLocaleString()}</div>`;
                 item.addEventListener('click', function(){
                     fetch('/notifications/' + n.id + '/read', { method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })

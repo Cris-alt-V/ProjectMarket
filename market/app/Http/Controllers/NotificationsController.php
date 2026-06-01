@@ -32,10 +32,24 @@ class NotificationsController extends Controller
             ->count();
 
         $list = $notifications->map(function ($n) {
+            $data = json_decode($n->data, true);
+            if ($data === null && !empty($n->data)) {
+                $data = ['message' => trim($n->data)];
+            }
+            $data = $data ?: [];
+            $text = $data['message'] ?? null;
+            if (!$text && !empty($data['producto_nombre'])) {
+                $text = "Hay una actualización en tu producto {$data['producto_nombre']}";
+            }
+            if (!$text) {
+                $text = $n->type ?? 'Notificación';
+            }
+
             return [
                 'id' => $n->id,
                 'type' => $n->type,
-                'data' => json_decode($n->data, true),
+                'data' => $data,
+                'text' => $text,
                 'created_at' => $n->created_at,
                 'read_at' => $n->read_at,
             ];
