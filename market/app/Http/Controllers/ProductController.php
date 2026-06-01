@@ -94,6 +94,16 @@ class ProductController extends Controller
         $avgRating = DB::table('reviews')->where('producto_id', $id)->avg('rating') ?: 0;
         $reviewsCount = DB::table('reviews')->where('producto_id', $id)->count();
 
-        return view('detalle-producto', compact('producto', 'comercio', 'reviews', 'avgRating', 'reviewsCount'));
+        // Verificar si el usuario actual ya ha reseñado este producto
+        $userAlreadyReviewed = false;
+        $user = session('user');
+        if ($user) {
+            $userAlreadyReviewed = DB::table('reviews')
+                ->where('producto_id', $id)
+                ->where('user_id', $user['id_usuario'])
+                ->exists();
+        }
+
+        return view('detalle-producto', compact('producto', 'comercio', 'reviews', 'avgRating', 'reviewsCount', 'userAlreadyReviewed'));
     }
 }

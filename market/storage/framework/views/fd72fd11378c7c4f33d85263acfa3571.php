@@ -1,35 +1,33 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Detalle del Producto - Marketplace Local'); ?>
 
-@section('title', 'Detalle del Producto - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <div class="product-detail-container">
     <div class="product-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; padding: 40px;">
       <div>
-        <img src="{{ $producto->imagen_url }}" alt="{{ $producto->nombre }}" id="productImage" class="product-image-large" onerror="this.style.display='none';">
+        <img src="<?php echo e($producto->imagen_url); ?>" alt="<?php echo e($producto->nombre); ?>" id="productImage" class="product-image-large" onerror="this.style.display='none';">
         <div class="product-gallery" id="productGallery"></div>
       </div>
       <div class="product-details">
-        <h1 id="productName">{{ $producto->nombre }}</h1>
+        <h1 id="productName"><?php echo e($producto->nombre); ?></h1>
         <div class="product-meta" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-          <div class="meta-item"><strong>Precio:</strong> <span id="productPrice">${{ number_format($producto->precio, 2) }}</span></div>
+          <div class="meta-item"><strong>Precio:</strong> <span id="productPrice">$<?php echo e(number_format($producto->precio, 2)); ?></span></div>
           <div class="meta-item"><strong>Categoría:</strong> <span id="productCategory">General</span></div>
-          <div class="meta-item"><strong>Ubicación:</strong> <span id="productLocation">{{ $comercio->ubicacion }}</span></div>
+          <div class="meta-item"><strong>Ubicación:</strong> <span id="productLocation"><?php echo e($comercio->ubicacion); ?></span></div>
         </div>
         <div class="store-info" style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
           <h3>Comercio</h3>
-          <p id="storeName">{{ $comercio->nombre_negocio }}</p>
-          <p id="storeLocation">Ubicación: {{ $comercio->ubicacion }}</p>
-          <p id="storeContact">Correo: {{ $comercio->vendedor_correo ?? 'No disponible' }}</p>
-          <p id="storeContact">Vendedor: {{ $comercio->vendedor_nombre ?? 'No disponible' }}</p>
-          <p id="storeDescription">{{ $comercio->descripcion ?? 'Descripción no disponible' }}</p>
+          <p id="storeName"><?php echo e($comercio->nombre_negocio); ?></p>
+          <p id="storeLocation">Ubicación: <?php echo e($comercio->ubicacion); ?></p>
+          <p id="storeContact">Correo: <?php echo e($comercio->vendedor_correo ?? 'No disponible'); ?></p>
+          <p id="storeContact">Vendedor: <?php echo e($comercio->vendedor_nombre ?? 'No disponible'); ?></p>
+          <p id="storeDescription"><?php echo e($comercio->descripcion ?? 'Descripción no disponible'); ?></p>
         </div>
         <div class="quantity-selector" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
           <label for="productQuantity">Cantidad</label>
           <input type="number" id="productQuantity" value="1" min="1" style="width: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center;">
         </div>
         <div class="price-section" style="margin-bottom: 30px;">
-          <div class="price-large" id="productPriceLarge">${{ number_format($producto->precio, 2) }}</div>
+          <div class="price-large" id="productPriceLarge">$<?php echo e(number_format($producto->precio, 2)); ?></div>
         </div>
         <div class="actions" style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
           <button class="btn btn-primary" id="btnAddToCart">Agregar al Carrito</button>
@@ -37,47 +35,47 @@
         </div>
         <div class="description-section" style="margin-top: 40px; padding-top: 40px; border-top: 2px solid #eee;">
           <h2>Descripción</h2>
-          <p id="productDescription" style="color: #666; line-height: 1.8;">{{ $producto->descripcion }}</p>
+          <p id="productDescription" style="color: #666; line-height: 1.8;"><?php echo e($producto->descripcion); ?></p>
         </div>
 
         <div class="reviews-section" style="margin-top: 30px;">
           <h2>Reseñas</h2>
           <div class="rating-summary" style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
             <div id="avgRatingStars" style="font-size:20px; color:#f5b50a;"></div>
-            <div style="color:#666;">Promedio: <span id="avgRatingValue">{{ round($avgRating,2) }}</span> / 5</div>
-            <div style="color:#999; font-size:13px;">(<span id="reviewsCount">{{ $reviewsCount ?? 0 }}</span> reseñas)</div>
+            <div style="color:#666;">Promedio: <span id="avgRatingValue"><?php echo e(round($avgRating,2)); ?></span> / 5</div>
+            <div style="color:#999; font-size:13px;">(<span id="reviewsCount"><?php echo e($reviewsCount ?? 0); ?></span> reseñas)</div>
           </div>
-          @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-          @endif
+          <?php if(session('success')): ?>
+            <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+          <?php endif; ?>
 
-          @if(!empty($reviews) && count($reviews) > 0)
+          <?php if(!empty($reviews) && count($reviews) > 0): ?>
             <ul class="reviews-list" style="list-style: none; padding: 0;">
-              @foreach($reviews as $r)
+              <?php $__currentLoopData = $reviews; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <li style="border-bottom: 1px solid #eee; padding: 12px 0;">
-                  <div style="font-weight: 600;">Calificación: {{ $r->rating }} / 5</div>
-                  <div style="color:#666;">{{ $r->comment }}</div>
-                  <div style="font-size: 12px; color:#999;">Publicado: {{ date('d/m/Y H:i', strtotime($r->created_at)) }}</div>
+                  <div style="font-weight: 600;">Calificación: <?php echo e($r->rating); ?> / 5</div>
+                  <div style="color:#666;"><?php echo e($r->comment); ?></div>
+                  <div style="font-size: 12px; color:#999;">Publicado: <?php echo e(date('d/m/Y H:i', strtotime($r->created_at))); ?></div>
                 </li>
-              @endforeach
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
-          @else
+          <?php else: ?>
             <p>No hay reseñas todavía. Sé el primero en opinar.</p>
-          @endif
+          <?php endif; ?>
 
-          @if(session('user') && session('user')['id_usuario'] === $producto->id_vendedor)
+          <?php if(session('user') && session('user')['id_usuario'] === $producto->id_vendedor): ?>
             <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
               <p style="margin: 0; color: #666;"><strong>ℹ️ Información:</strong> No puedes reseñar tu propio producto.</p>
             </div>
-          @elseif(session('user') && $userAlreadyReviewed)
+          <?php elseif(session('user') && $userAlreadyReviewed): ?>
             <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
               <p style="margin: 0; color: #666;"><strong>✓ Ya reseñaste este producto</strong><br>Solo puedes dejar una reseña por producto.</p>
             </div>
-          @elseif(session('user'))
+          <?php elseif(session('user')): ?>
             <div class="review-form" style="margin-top:20px;">
               <h3>Escribir una reseña</h3>
-              <form id="reviewForm" method="POST" action="/producto/{{ $producto->id_producto }}/review">
-                @csrf
+              <form id="reviewForm" method="POST" action="/producto/<?php echo e($producto->id_producto); ?>/review">
+                <?php echo csrf_field(); ?>
                 <div style="margin-bottom:8px;">
                   <label>Calificación</label>
                   <div id="starRating" style="display:inline-block; margin-left:8px;">
@@ -95,29 +93,29 @@
                 <button class="btn btn-primary" type="submit">Enviar reseña</button>
               </form>
             </div>
-          @else
+          <?php else: ?>
             <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
               <p style="margin: 0; color: #666;"><a href="/registro" style="color: #667eea; text-decoration: underline;"><strong>Inicia sesión</strong></a> para dejar una reseña.</p>
             </div>
-          @endif
+          <?php endif; ?>
         </div>
       </div>
     </div>
   </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const product = {
-      id: {{ $producto->id_producto }},
-      nombre: `{{ addslashes($producto->nombre) }}`,
-      descripcion: `{{ addslashes($producto->descripcion) }}`,
-      precio: parseFloat({{ $producto->precio }}),
-      foto: `{{ $producto->imagen_url ?? '/imagenes/blusa.png' }}`,
+      id: <?php echo e($producto->id_producto); ?>,
+      nombre: `<?php echo e(addslashes($producto->nombre)); ?>`,
+      descripcion: `<?php echo e(addslashes($producto->descripcion)); ?>`,
+      precio: parseFloat(<?php echo e($producto->precio); ?>),
+      foto: `<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>`,
       categoria: 'General',
-      ubicacion: `{{ addslashes($comercio->ubicacion) }}`,
-      comercioId: {{ $comercio->id_vendedor }},
+      ubicacion: `<?php echo e(addslashes($comercio->ubicacion)); ?>`,
+      comercioId: <?php echo e($comercio->id_vendedor); ?>,
     };
 
     const btnAdd = document.getElementById('btnAddToCart');
@@ -162,7 +160,7 @@
       }
 
       // initialize with server values
-      renderAvgStars({{ round($avgRating,2) }});
+      renderAvgStars(<?php echo e(round($avgRating,2)); ?>);
 
       function fillStars(r) {
         starEls.forEach(s => {
@@ -259,4 +257,6 @@
     })();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\crist\OneDrive\Desktop\asdf\ProjectMarket\market\resources\views/detalle-producto.blade.php ENDPATH**/ ?>

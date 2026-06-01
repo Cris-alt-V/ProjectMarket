@@ -68,9 +68,22 @@ const MarketplaceApp = {
     return Promise.resolve(this.getCurrentUser());
   },
 
+  getCartKey() {
+    const user = this.getCurrentUser();
+    return user ? `cart_${user.id_usuario}` : 'cart_guest';
+  },
+
   getCart() {
     try {
-      const raw = localStorage.getItem('marketplaceCart');
+      const user = this.getCurrentUser();
+      if (!user) {
+        // Si no hay usuario, devolver carrito vacío (guest)
+        const raw = localStorage.getItem('cart_guest');
+        return raw ? JSON.parse(raw) : [];
+      }
+      // Obtener carrito específico del usuario
+      const cartKey = this.getCartKey();
+      const raw = localStorage.getItem(cartKey);
       return raw ? JSON.parse(raw) : [];
     } catch (error) {
       console.error('Unable to read cart from localStorage', error);
@@ -80,26 +93,38 @@ const MarketplaceApp = {
 
   setCart(cartItems) {
     try {
-      localStorage.setItem('marketplaceCart', JSON.stringify(cartItems));
+      const cartKey = this.getCartKey();
+      localStorage.setItem(cartKey, JSON.stringify(cartItems));
       this.updateCartBadge();
     } catch (error) {
       console.error('Unable to save cart to localStorage', error);
     }
   },
 
-  addToCart(product) {
+  clearCart() {
+    try {
+      const cartKey = this.getCartKey();
+      localStorage.removeItem(cartKey);
+      this.updateCartBadge();
+    } catch (error) {
+      console.error('Unable to clear cart from localStorage', error);
+    }
+  },
+
+  addToCart(product, quantity = 1) {
     const cart = this.getCart();
     const existing = cart.find((item) => item.id === product.id);
     if (existing) {
-      existing.quantity += 1;
+      existing.quantity += quantity;
     } else {
       cart.push({
         ...product,
-        quantity: 1,
+        quantity: quantity,
       });
     }
     this.setCart(cart);
-    this.showNotification('Producto agregado al carrito');
+    const mensaje = quantity > 1 ? `${quantity} unidades agregadas al carrito` : 'Producto agregado al carrito';
+    this.showNotification(mensaje);
   },
 
   getComercioById(id) {
@@ -138,11 +163,38 @@ const MarketplaceApp = {
     }
   },
 
-  showNotification(message) {
+  showNotification(message, type = 'info') {
     if (!message) {
       return;
     }
-    alert(message);
+    
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    
+    // Agregar clase de tipo si existe
+    if (type === 'success') {
+      notification.style.background = '#4caf50';
+    } else if (type === 'error') {
+      notification.style.background = '#f44336';
+    } else if (type === 'info') {
+      notification.style.background = '#2196f3';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Trigger animation
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
   },
 };
 

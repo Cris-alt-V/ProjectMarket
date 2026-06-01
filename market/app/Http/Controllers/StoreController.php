@@ -24,37 +24,51 @@ class StoreController extends Controller
 
     protected function saveProductImage(Request $request): ?string
     {
+        // Primero intentar guardar archivo subido
         if ($request->hasFile('imagen_file') && $request->file('imagen_file')->isValid()) {
-            $file = $request->file('imagen_file');
-            $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
-            $filename = uniqid('producto_', true) . '.' . $extension;
-            Storage::disk('public')->makeDirectory('imagenes');
-            $path = $file->storeAs('imagenes', $filename, 'public');
-
-            return '/storage/' . $path;
-        }
-
-        $dataUrl = $request->input('imagen_data');
-        if ($dataUrl) {
-            if (preg_match('/^data:image\/(png|jpeg|jpg|gif|webp|svg)\;base64,(.+)$/i', $dataUrl, $matches)) {
-                $extension = strtolower($matches[1]);
-                if ($extension === 'jpeg') {
-                    $extension = 'jpg';
-                }
-
-                $decoded = base64_decode($matches[2]);
-                if ($decoded === false) {
-                    return null;
-                }
-
+            try {
+                $file = $request->file('imagen_file');
+                $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
                 $filename = uniqid('producto_', true) . '.' . $extension;
                 Storage::disk('public')->makeDirectory('imagenes');
-                Storage::disk('public')->put('imagenes/' . $filename, $decoded);
+                $path = $file->storeAs('imagenes', $filename, 'public');
 
-                return '/storage/imagenes/' . $filename;
+                if ($path) {
+                    return '/storage/' . $path;
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error guardando archivo de imagen: ' . $e->getMessage());
             }
+        }
 
-            return null;
+        // Intentar guardar base64
+        $dataUrl = $request->input('imagen_data');
+        if ($dataUrl && strlen($dataUrl) > 0) {
+            // Soportar ambos formatos: data:image/png;base64,... y sin el prefijo data:image
+            if (preg_match('/^data:image\/(png|jpeg|jpg|gif|webp|svg)\;base64,(.+)$/i', $dataUrl, $matches)) {
+                try {
+                    $extension = strtolower($matches[1]);
+                    if ($extension === 'jpeg') {
+                        $extension = 'jpg';
+                    }
+
+                    $decoded = base64_decode($matches[2], true);
+                    if ($decoded === false) {
+                        \Log::warning('Error decodificando base64');
+                        return null;
+                    }
+
+                    $filename = uniqid('producto_', true) . '.' . $extension;
+                    Storage::disk('public')->makeDirectory('imagenes');
+                    $saved = Storage::disk('public')->put('imagenes/' . $filename, $decoded);
+
+                    if ($saved) {
+                        return '/storage/imagenes/' . $filename;
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error guardando base64 de imagen: ' . $e->getMessage());
+                }
+            }
         }
 
         return null;

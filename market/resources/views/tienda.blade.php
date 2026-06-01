@@ -56,7 +56,7 @@
   function createProductCard(product) {
     return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
-        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
+        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.style.display='none';">
         <div class="product-info">
           <div class="product-category">${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>

@@ -17,6 +17,26 @@ class ReviewController extends Controller
             return Redirect::to('/registro');
         }
 
+        // Verificar que el usuario NO sea el vendedor del producto
+        $producto = DB::table('productos')->where('id_producto', $id)->first();
+        if (!$producto) {
+            return Redirect::back()->with('error', 'Producto no encontrado');
+        }
+
+        if ($producto->id_vendedor === $user['id_usuario']) {
+            return Redirect::back()->with('error', 'No puedes reseñar tu propio producto');
+        }
+
+        // Verificar si el usuario ya tiene una reseña en este producto
+        $existingReview = DB::table('reviews')
+            ->where('producto_id', $id)
+            ->where('user_id', $user['id_usuario'])
+            ->first();
+
+        if ($existingReview) {
+            return Redirect::back()->with('error', 'Ya has reseñado este producto. Solo puedes hacer una reseña por producto.');
+        }
+
         $data = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:2000',
@@ -30,7 +50,6 @@ class ReviewController extends Controller
         ]);
 
         // notify vendedor via a simple notifications table entry
-        $producto = DB::table('productos')->where('id_producto', $id)->first();
         if ($producto) {
             $vendedorId = $producto->id_vendedor;
             DB::table('notifications')->insert([
