@@ -27,12 +27,48 @@ class AuthController extends Controller
         ];
     }
 
+    private function validationMessages()
+    {
+        return [
+            'required' => 'El campo :attribute es obligatorio.',
+            'email' => 'El campo :attribute debe ser un correo electrónico válido.',
+            'unique' => 'Ese :attribute ya está registrado.',
+            'string' => 'El campo :attribute debe ser texto.',
+            'max' => 'El campo :attribute no debe superar :max caracteres.',
+            'min' => 'El campo :attribute debe tener al menos :min caracteres.',
+            'confirmed' => 'La confirmación de :attribute no coincide.',
+            'integer' => 'El campo :attribute debe ser un número entero.',
+            'numeric' => 'El campo :attribute debe ser un número.',
+            'exists' => 'El :attribute seleccionado no existe.',
+        ];
+    }
+
+    private function validationAttributes()
+    {
+        return [
+            'nombre' => 'nombre',
+            'correo' => 'correo electrónico',
+            'telefono' => 'teléfono',
+            'direccion' => 'dirección',
+            'contraseña' => 'contraseña',
+            'contraseña_confirmation' => 'confirmación de contraseña',
+            'nombre_propietario' => 'nombre del propietario',
+            'nombre_negocio' => 'nombre del comercio',
+            'ubicacion' => 'ubicación',
+            'descripcion' => 'descripción',
+            'id_vendedor' => 'vendedor',
+            'precio' => 'precio',
+            'stock' => 'stock',
+            'imagen_url' => 'imagen',
+        ];
+    }
+
     public function login(Request $request)
     {
         $request->validate([
             'correo' => 'required|email',
             'contraseña' => 'required|string',
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         $usuario = DB::table('usuarios')->where('correo', $request->correo)->first();
 
@@ -48,7 +84,9 @@ class AuthController extends Controller
             $valid = true;
         } elseif ($password === $stored) {
             $valid = true;
-            DB::table('usuarios')->where('id_usuario', $usuario->id_usuario)->update(['contraseña' => Hash::make($password)]);
+            DB::table('usuarios')->where('id_usuario', $usuario->id_usuario)->update([
+                'contraseña' => Hash::make($password),
+            ]);
         }
 
         if (!$valid) {
@@ -75,7 +113,7 @@ class AuthController extends Controller
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:150',
             'contraseña' => 'required|string|min:6|confirmed',
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         $id = DB::table('usuarios')->insertGetId([
             'nombre' => $request->nombre,
@@ -109,7 +147,7 @@ class AuthController extends Controller
             'ubicacion' => 'nullable|string|max:150',
             'descripcion' => 'nullable|string',
             'contraseña' => 'required|string|min:6|confirmed',
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         $id = DB::table('usuarios')->insertGetId([
             'nombre' => $request->nombre_propietario,
@@ -150,7 +188,7 @@ class AuthController extends Controller
             'nombre' => 'required|string|max:100',
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string|max:150',
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         DB::table('usuarios')->where('id_usuario', $user['id_usuario'])->update([
             'nombre' => $request->nombre,
@@ -184,7 +222,7 @@ class AuthController extends Controller
             'precio' => 'required|numeric|min:0',
             'stock' => 'nullable|integer|min:0',
             'imagen_url' => 'nullable|string',
-        ]);
+        ], $this->validationMessages(), $this->validationAttributes());
 
         $id = DB::table('productos')->insertGetId([
             'id_vendedor' => $request->id_vendedor,
@@ -197,7 +235,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'id_producto' => $id
+            'id_producto' => $id,
         ]);
     }
 }

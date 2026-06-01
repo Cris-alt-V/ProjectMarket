@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Acceso - AristoMarket'); ?>
 
-@section('title', 'Acceso - AristoMarket')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <section class="auth-page">
     <div class="auth-shell">
       <div class="auth-brand-panel">
@@ -47,38 +45,40 @@
           </button>
         </div>
 
-        @if ($errors->any())
+        <?php if($errors->any()): ?>
           <div class="auth-alert auth-alert-error">
             <strong>Revisá estos campos:</strong>
             <ul>
-              @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-              @endforeach
+              <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <li><?php echo e($error); ?></li>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </ul>
           </div>
-        @endif
+        <?php endif; ?>
 
-        @if (session('error'))
+        <?php if(session('error')): ?>
           <div class="auth-alert auth-alert-error">
-            {{ session('error') }}
-          </div>
-        @endif
+            <?php echo e(session('error')); ?>
 
-        @if (session('success'))
-          <div class="auth-alert auth-alert-success">
-            {{ session('success') }}
           </div>
-        @endif
+        <?php endif; ?>
+
+        <?php if(session('success')): ?>
+          <div class="auth-alert auth-alert-success">
+            <?php echo e(session('success')); ?>
+
+          </div>
+        <?php endif; ?>
 
         <div class="auth-panel active" id="loginTab" role="tabpanel" aria-labelledby="btnLoginTab">
           <p class="auth-panel-copy">Ingresá con tu correo y contraseña para continuar.</p>
           <form action="/auth/login" method="POST" class="auth-form">
-            @csrf
+            <?php echo csrf_field(); ?>
             <div class="auth-field">
               <label for="loginCorreo">Correo electrónico</label>
               <div class="auth-input-wrap">
                 <span>@</span>
-                <input id="loginCorreo" type="email" name="correo" autocomplete="email" required value="{{ old('correo') }}" placeholder="tu@email.com">
+                <input id="loginCorreo" type="email" name="correo" autocomplete="email" required value="<?php echo e(old('correo')); ?>" placeholder="tu@email.com">
               </div>
             </div>
 
@@ -97,13 +97,13 @@
         <div class="auth-panel" id="registerTab" role="tabpanel" aria-labelledby="btnRegisterTab">
           <p class="auth-panel-copy">Crea una cuenta para guardar tus datos y comprar con mayor rapidez.</p>
           <form action="/auth/register-buyer" method="POST" class="auth-form">
-            @csrf
+            <?php echo csrf_field(); ?>
             <div class="auth-form-grid">
               <div class="auth-field">
                 <label for="buyerNombre">Nombre completo</label>
                 <div class="auth-input-wrap">
                   <span>N</span>
-                  <input id="buyerNombre" type="text" name="nombre" autocomplete="name" required value="{{ old('nombre') }}" placeholder="Tu nombre">
+                  <input id="buyerNombre" type="text" name="nombre" autocomplete="name" required value="<?php echo e(old('nombre')); ?>" placeholder="Tu nombre">
                 </div>
               </div>
 
@@ -111,7 +111,7 @@
                 <label for="buyerCorreo">Correo electrónico</label>
                 <div class="auth-input-wrap">
                   <span>@</span>
-                  <input id="buyerCorreo" type="email" name="correo" autocomplete="email" required value="{{ old('correo') }}" placeholder="tu@email.com">
+                  <input id="buyerCorreo" type="email" name="correo" autocomplete="email" required value="<?php echo e(old('correo')); ?>" placeholder="tu@email.com">
                 </div>
               </div>
 
@@ -119,7 +119,7 @@
                 <label for="buyerTelefono">Teléfono</label>
                 <div class="auth-input-wrap">
                   <span>#</span>
-                  <input id="buyerTelefono" type="tel" name="telefono" autocomplete="tel" value="{{ old('telefono') }}" placeholder="5555-5555">
+                  <input id="buyerTelefono" type="tel" name="telefono" autocomplete="tel" value="<?php echo e(old('telefono')); ?>" placeholder="5555-5555">
                 </div>
               </div>
 
@@ -127,7 +127,7 @@
                 <label for="buyerDireccion">Dirección</label>
                 <div class="auth-input-wrap">
                   <span>D</span>
-                  <input id="buyerDireccion" type="text" name="direccion" autocomplete="street-address" value="{{ old('direccion') }}" placeholder="Ciudad, zona o colonia">
+                  <input id="buyerDireccion" type="text" name="direccion" autocomplete="street-address" value="<?php echo e(old('direccion')); ?>" placeholder="Ciudad, zona o colonia">
                 </div>
               </div>
 
@@ -155,13 +155,13 @@
         <div class="auth-panel" id="storeTab" role="tabpanel" aria-labelledby="btnStoreTab">
           <p class="auth-panel-copy">Registra tu comercio y empieza a publicar productos para tus clientes.</p>
           <form action="/auth/register-store" method="POST" class="auth-form">
-            @csrf
+            <?php echo csrf_field(); ?>
             <div class="auth-form-grid">
               <div class="auth-field">
                 <label for="storeName">Nombre del comercio</label>
                 <div class="auth-input-wrap">
                   <span>T</span>
-                  <input id="storeName" type="text" name="nombre_negocio" required value="{{ old('nombre_negocio') }}" placeholder="Nombre comercial">
+                  <input id="storeName" type="text" name="nombre_negocio" required value="<?php echo e(old('nombre_negocio')); ?>" placeholder="Nombre comercial">
                 </div>
               </div>
 
@@ -169,7 +169,7 @@
                 <label for="ownerName">Nombre del propietario</label>
                 <div class="auth-input-wrap">
                   <span>N</span>
-                  <input id="ownerName" type="text" name="nombre_propietario" autocomplete="name" required value="{{ old('nombre_propietario') }}" placeholder="Responsable del comercio">
+                  <input id="ownerName" type="text" name="nombre_propietario" autocomplete="name" required value="<?php echo e(old('nombre_propietario')); ?>" placeholder="Responsable del comercio">
                 </div>
               </div>
 
@@ -177,7 +177,7 @@
                 <label for="storeCorreo">Correo electrónico</label>
                 <div class="auth-input-wrap">
                   <span>@</span>
-                  <input id="storeCorreo" type="email" name="correo" autocomplete="email" required value="{{ old('correo') }}" placeholder="negocio@email.com">
+                  <input id="storeCorreo" type="email" name="correo" autocomplete="email" required value="<?php echo e(old('correo')); ?>" placeholder="negocio@email.com">
                 </div>
               </div>
 
@@ -185,7 +185,7 @@
                 <label for="storeTelefono">Teléfono</label>
                 <div class="auth-input-wrap">
                   <span>#</span>
-                  <input id="storeTelefono" type="tel" name="telefono" autocomplete="tel" value="{{ old('telefono') }}" placeholder="5555-5555">
+                  <input id="storeTelefono" type="tel" name="telefono" autocomplete="tel" value="<?php echo e(old('telefono')); ?>" placeholder="5555-5555">
                 </div>
               </div>
 
@@ -193,13 +193,13 @@
                 <label for="storeUbicacion">Ubicación del comercio</label>
                 <div class="auth-input-wrap">
                   <span>U</span>
-                  <input id="storeUbicacion" type="text" name="ubicacion" value="{{ old('ubicacion') }}" placeholder="Dirección o punto de referencia">
+                  <input id="storeUbicacion" type="text" name="ubicacion" value="<?php echo e(old('ubicacion')); ?>" placeholder="Dirección o punto de referencia">
                 </div>
               </div>
 
               <div class="auth-field auth-field-wide">
                 <label for="storeDescripcion">Descripción del comercio</label>
-                <textarea id="storeDescripcion" name="descripcion" placeholder="Contá qué vendés, horarios o detalles importantes">{{ old('descripcion') }}</textarea>
+                <textarea id="storeDescripcion" name="descripcion" placeholder="Contá qué vendés, horarios o detalles importantes"><?php echo e(old('descripcion')); ?></textarea>
               </div>
 
               <div class="auth-field">
@@ -225,9 +225,9 @@
       </div>
     </div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   const authTabTitles = {
     login: 'Iniciar sesión',
@@ -266,10 +266,12 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     const queryTab = new URLSearchParams(window.location.search).get('tab');
-    const sessionTab = @json(session('tab'));
+    const sessionTab = <?php echo json_encode(session('tab'), 15, 512) ?>;
     switchTab(queryTab || sessionTab || 'login');
     updateUserDisplay();
     updateCartBadge();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\ASUS\Desktop\aristocraciamarket\ProjectMarket\market\resources\views/registro.blade.php ENDPATH**/ ?>
