@@ -43,7 +43,7 @@
                                 <?php if(session('user')['tipo_usuario'] === 'vendedor'): ?>
                                     <a href="/mis-comercios" id="storesLink">Mis Comercios</a>
                                 <?php endif; ?>
-                                <form action="/auth/logout" method="POST" style="display: inline;">
+                                <form action="/auth/logout" method="POST" style="display: inline;" id="logoutForm">
                                     <?php echo csrf_field(); ?>
                                     <button type="submit" id="logoutBtn" style="display: block; width: 100%; text-align: left; background: none; border: none; padding: 10px; cursor: pointer; color: #667eea;">Cerrar Sesión</button>
                                 </form>
@@ -68,6 +68,51 @@
 
     <script>
         window.currentSessionUser = <?php echo json_encode(session('user'), 15, 512) ?>;
+        
+        // Validar cambio de usuario y migrar carrito/cupón de invitado
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = window.currentSessionUser;
+            const storedUser = MarketplaceApp.getCurrentUser();
+            
+            // Caso 1: Usuario inicia sesión (había invitado, ahora hay usuario)
+            if (currentUser && !storedUser) {
+                // Migrar carrito de invitado a usuario
+                const guestCart = localStorage.getItem('cart_guest');
+                if (guestCart) {
+                    const userCartKey = `cart_${currentUser.id_usuario}`;
+                    localStorage.setItem(userCartKey, guestCart);
+                    localStorage.removeItem('cart_guest');
+                }
+                
+                // Migrar cupón activo de invitado a usuario
+                const guestPromo = localStorage.getItem('promo_active_guest');
+                if (guestPromo) {
+                    const userPromoKey = `promo_active_${currentUser.id_usuario}`;
+                    localStorage.setItem(userPromoKey, guestPromo);
+                    localStorage.removeItem('promo_active_guest');
+                }
+            }
+            
+            // Caso 2: Usuario cambió (usuario A a usuario B)
+            if (currentUser && storedUser && currentUser.id_usuario !== storedUser.id_usuario) {
+                // Limpiar cupón activo del usuario anterior
+                const oldPromoKey = `promo_active_${storedUser.id_usuario}`;
+                localStorage.removeItem(oldPromoKey);
+            }
+            
+            // Actualizar el usuario en localStorage si hay sesión activa
+            if (currentUser) {
+                MarketplaceApp.setCurrentUser(currentUser);
+            } else if (storedUser) {
+                // Si la sesión del servidor terminó, limpiar el usuario guardado localmente.
+                MarketplaceApp.clearCurrentUser();
+            }
+            
+            // Actualizar badge del carrito
+            if (typeof MarketplaceApp.updateCartBadge === 'function') {
+                MarketplaceApp.updateCartBadge();
+            }
+        });
     </script>
 
     <main class="main-container">

@@ -52,6 +52,12 @@ class ReviewController extends Controller
         // notify vendedor via a simple notifications table entry
         if ($producto) {
             $vendedorId = $producto->id_vendedor;
+            $commentSnippet = $data['comment'] ? Str::limit($data['comment'], 80) : null;
+            $message = "Tu producto '{$producto->nombre}' recibió una reseña de {$user['nombre']} con {$data['rating']} estrella";
+            if ($commentSnippet) {
+                $message .= ": " . $commentSnippet;
+            }
+
             DB::table('notifications')->insert([
                 'id' => (string) Str::uuid(),
                 'type' => 'review.created',
@@ -59,8 +65,12 @@ class ReviewController extends Controller
                 'notifiable_id' => $vendedorId,
                 'data' => json_encode([
                     'producto_id' => $id,
+                    'producto_nombre' => $producto->nombre,
                     'review_id' => $review->id,
-                    'message' => 'Nuevo comentario en tu producto',
+                    'rating' => $data['rating'],
+                    'comment' => $data['comment'] ?? null,
+                    'reviewer_name' => $user['nombre'] ?? 'Cliente',
+                    'message' => $message,
                 ]),
                 'created_at' => now(),
                 'updated_at' => now(),

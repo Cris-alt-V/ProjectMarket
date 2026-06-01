@@ -38,7 +38,11 @@
                 item.style.borderBottom = '1px solid #f5f5f5';
                 item.style.cursor = 'pointer';
                 if(!n.read_at){ item.style.background = '#f9fbff'; }
-                const text = (n.data && n.data.message) ? n.data.message : (n.type || 'Notificación');
+                const text = (n.data && n.data.message)
+                    ? n.data.message
+                    : (n.data && n.data.producto_nombre)
+                        ? `Hay una actualización en tu producto ${n.data.producto_nombre}`
+                        : (n.type || 'Notificación');
                 item.innerHTML = `<div style="font-weight:600">${text}</div><div style="font-size:12px;color:#666;margin-top:4px">${new Date(n.created_at).toLocaleString()}</div>`;
                 item.addEventListener('click', function(){
                     fetch('/notifications/' + n.id + '/read', { method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
@@ -49,10 +53,18 @@
         }
 
         function fetchAndRender(){
-            fetch('/notifications', {credentials: 'same-origin'})
+            fetch('/notifications', {
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            })
                 .then(r => r.json())
                 .then(data => renderNotifications(data))
-                .catch(()=>{/* ignore errors */});
+                .catch(() => {
+                    list.innerHTML = '<div style="padding:12px;color:#666">Error cargando notificaciones.</div>';
+                    badge.style.display = 'none';
+                });
         }
 
         toggle.addEventListener('click', function(){

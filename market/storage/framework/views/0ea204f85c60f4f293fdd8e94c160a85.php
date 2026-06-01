@@ -4,14 +4,14 @@
   <div class="product-detail-container">
     <div class="product-detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; padding: 40px;">
       <div>
-        <img src="<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>" alt="<?php echo e($producto->nombre); ?>" id="productImage" class="product-image-large" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
+        <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : asset('imagenes/blusa.png')); ?>" alt="<?php echo e($producto->nombre); ?>" id="productImage" class="product-image-large" onerror="this.onerror=null;this.src='<?php echo e(asset('imagenes/blusa.png')); ?>';">
         <div class="product-gallery" id="productGallery"></div>
       </div>
       <div class="product-details">
         <h1 id="productName"><?php echo e($producto->nombre); ?></h1>
         <div class="product-meta" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
           <div class="meta-item"><strong>Precio:</strong> <span id="productPrice">$<?php echo e(number_format($producto->precio, 2)); ?></span></div>
-          <div class="meta-item"><strong>Categoría:</strong> <span id="productCategory">General</span></div>
+          <div class="meta-item"><strong>Categoría:</strong> <span id="productCategory"><?php echo e($producto->categoria ?? 'General'); ?></span></div>
           <div class="meta-item"><strong>Ubicación:</strong> <span id="productLocation"><?php echo e($comercio->ubicacion); ?></span></div>
         </div>
         <div class="store-info" style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -63,27 +63,41 @@
             <p>No hay reseñas todavía. Sé el primero en opinar.</p>
           <?php endif; ?>
 
-          <div class="review-form" style="margin-top:20px;">
-            <h3>Escribir una reseña</h3>
-            <form id="reviewForm" method="POST" action="/producto/<?php echo e($producto->id_producto); ?>/review">
-              <?php echo csrf_field(); ?>
-              <div style="margin-bottom:8px;">
-                <label>Calificación</label>
-                <div id="starRating" style="display:inline-block; margin-left:8px;">
-                  <span class="star" data-value="1">☆</span>
-                  <span class="star" data-value="2">☆</span>
-                  <span class="star" data-value="3">☆</span>
-                  <span class="star" data-value="4">☆</span>
-                  <span class="star" data-value="5">☆</span>
+          <?php if(session('user') && session('user')['id_usuario'] === $producto->id_vendedor): ?>
+            <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
+              <p style="margin: 0; color: #666;"><strong>ℹ️ Información:</strong> No puedes reseñar tu propio producto.</p>
+            </div>
+          <?php elseif(session('user') && $userAlreadyReviewed): ?>
+            <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
+              <p style="margin: 0; color: #666;"><strong>✓ Ya reseñaste este producto</strong><br>Solo puedes dejar una reseña por producto.</p>
+            </div>
+          <?php elseif(session('user')): ?>
+            <div class="review-form" style="margin-top:20px;">
+              <h3>Escribir una reseña</h3>
+              <form id="reviewForm" method="POST" action="/producto/<?php echo e($producto->id_producto); ?>/review">
+                <?php echo csrf_field(); ?>
+                <div style="margin-bottom:8px;">
+                  <label>Calificación</label>
+                  <div id="starRating" style="display:inline-block; margin-left:8px;">
+                    <span class="star" data-value="1">☆</span>
+                    <span class="star" data-value="2">☆</span>
+                    <span class="star" data-value="3">☆</span>
+                    <span class="star" data-value="4">☆</span>
+                    <span class="star" data-value="5">☆</span>
+                  </div>
                 </div>
-              </div>
-              <div style="margin-bottom:8px;">
-                <label>Comentario</label><br>
-                <textarea name="comment" id="reviewComment" rows="3" style="width:100%;"></textarea>
-              </div>
-              <button class="btn btn-primary" type="submit">Enviar reseña</button>
-            </form>
-          </div>
+                <div style="margin-bottom:8px;">
+                  <label>Comentario</label><br>
+                  <textarea name="comment" id="reviewComment" rows="3" style="width:100%;"></textarea>
+                </div>
+                <button class="btn btn-primary" type="submit">Enviar reseña</button>
+              </form>
+            </div>
+          <?php else: ?>
+            <div style="margin-top:20px; padding: 15px; background: #f5f5f5; border-radius: 8px; border-left: 4px solid #667eea;">
+              <p style="margin: 0; color: #666;"><a href="/registro" style="color: #667eea; text-decoration: underline;"><strong>Inicia sesión</strong></a> para dejar una reseña.</p>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -99,7 +113,7 @@
       descripcion: `<?php echo e(addslashes($producto->descripcion)); ?>`,
       precio: parseFloat(<?php echo e($producto->precio); ?>),
       foto: `<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>`,
-      categoria: 'General',
+      categoria: `<?php echo e(addslashes($producto->categoria ?? 'General')); ?>`,
       ubicacion: `<?php echo e(addslashes($comercio->ubicacion)); ?>`,
       comercioId: <?php echo e($comercio->id_vendedor); ?>,
     };
@@ -108,14 +122,14 @@
     if (btnAdd) {
       btnAdd.addEventListener('click', function() {
         const quantity = parseInt(document.getElementById('productQuantity').value, 10) || 1;
-        console.log('Agregar al carrito:', product, 'cantidad:', quantity);
-        for (let i = 0; i < quantity; i++) {
-          try {
-            if (window.addToCart) window.addToCart(product);
-            else if (window.MarketplaceApp && window.MarketplaceApp.addToCart) window.MarketplaceApp.addToCart(product);
-          } catch (err) {
-            console.error('Error agregando al carrito', err);
+        try {
+          if (window.MarketplaceApp && typeof window.MarketplaceApp.addToCart === 'function') {
+            window.MarketplaceApp.addToCart(product, quantity);
+          } else if (typeof window.addToCart === 'function') {
+            window.addToCart(product, quantity);
           }
+        } catch (err) {
+          console.error('Error agregando al carrito', err);
         }
         if (window.updateCartBadge) updateCartBadge();
       });

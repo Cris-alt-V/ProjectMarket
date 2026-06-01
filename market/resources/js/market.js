@@ -1,4 +1,14 @@
 const MarketplaceApp = {
+  categorias: [
+    { nombre: 'Accesorios', icono: '👜' },
+    { nombre: 'Ropa', icono: '👗' },
+    { nombre: 'Alimentos', icono: '🍎' },
+    { nombre: 'Electrónica', icono: '💻' },
+    { nombre: 'Hogar', icono: '🏠' },
+    { nombre: 'Belleza', icono: '💄' },
+  ],
+  comercios: [],
+  productos: [],
   api(path, options = {}) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const defaultOptions = {
@@ -238,11 +248,23 @@ window.toggleUserMenu = function () {
   menu.classList.toggle('active');
 };
 
-window.addToCart = function (product) {
-  if (!product || !product.id) {
+window.addToCart = function (product, quantity = 1) {
+  if (!product || !product.id || !window.MarketplaceApp || typeof MarketplaceApp.addToCart !== 'function') {
     return;
   }
-  MarketplaceApp.addToCart(product);
+  MarketplaceApp.addToCart(product, Number(quantity) || 1);
+};
+
+window.addToCartById = function (productId, quantity = 1) {
+  if (!window.MarketplaceApp || typeof MarketplaceApp.getProductById !== 'function') {
+    return;
+  }
+  const product = MarketplaceApp.getProductById(productId);
+  if (!product) {
+    console.warn('No se encontró el producto para añadir al carrito:', productId);
+    return;
+  }
+  MarketplaceApp.addToCart(product, Number(quantity) || 1);
 };
 
 window.logout = async function () {
@@ -264,6 +286,14 @@ window.logout = async function () {
 window.addEventListener('DOMContentLoaded', () => {
   MarketplaceApp.updateCartBadge();
   MarketplaceApp.updateUserDisplay();
+
+  const logoutForm = document.getElementById('logoutForm');
+  if (logoutForm) {
+    logoutForm.addEventListener('submit', () => {
+      MarketplaceApp.clearCurrentUser();
+    });
+  }
+
   document.addEventListener('click', (event) => {
     const menu = document.getElementById('userMenu');
     const userInfo = document.querySelector('.user-info');

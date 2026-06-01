@@ -20,8 +20,13 @@ abstract class Controller
 
         $url = trim($url);
 
-        // URL absolute (http/https), protocol-relative (//), root-relative (/...), data URI or blob URI.
-        if (preg_match('#^(https?://|//|/|data:|blob:)#i', $url)) {
+        // Si es un data URI o blob URI, no lo guardamos crudo en la base de datos.
+        if (preg_match('#^(data:|blob:)#i', $url)) {
+            return null;
+        }
+
+        // URL absolute (http/https), protocol-relative (//), root-relative (/...)
+        if (preg_match('#^(https?://|//|/)#i', $url)) {
             return $url;
         }
 

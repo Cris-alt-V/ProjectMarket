@@ -16,9 +16,8 @@
     <div id="storesContent">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px;">
         <h2 style="margin: 0;">Mis Tiendas</h2>
-        <button class="btn btn-primary" onclick="document.getElementById('formAgregarProducto').style.display='block'">Agregar Producto</button>
+        <button class="btn btn-primary" onclick="showAddProductForm()">Agregar Producto</button>
       </div>
-
       <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
           <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">🏪 <?php echo e(session('user')['nombre_negocio'] ?? 'Mi Tienda'); ?></h3>
@@ -47,7 +46,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
           <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-              <img src="<?php echo e($producto->imagen_url ?? '/imagenes/blusa.png'); ?>" alt="<?php echo e($producto->nombre); ?>" style="width: 100%; height: 200px; object-fit: contain; background: #f8f8f8;">
+              <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : asset('imagenes/blusa.png')); ?>" alt="<?php echo e($producto->nombre); ?>" style="width: 100%; height: 200px; object-fit: contain; background: white; border-bottom: 1px solid #eee;" onerror="this.onerror=null;this.src='<?php echo e(asset('imagenes/blusa.png')); ?>';">
               <div style="padding: 15px;">
                 <h4 style="margin: 0 0 10px 0;"><?php echo e($producto->nombre); ?></h4>
                 <p style="color: #666; font-size: 0.9em; margin: 5px 0;"><?php echo e(Str::limit($producto->descripcion, 100)); ?></p>
@@ -56,11 +55,15 @@
 
                 </div>
                 <div style="margin: 10px 0; font-size: 0.9em; color: #666;">
+                  Categoría: <?php echo e($producto->categoria ?? 'General'); ?>
+
+                </div>
+                <div style="margin: 10px 0; font-size: 0.9em; color: #666;">
                   Stock: <?php echo e($producto->stock); ?>
 
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                  <button class="btn btn-primary" style="flex: 1;" onclick="editProduct(<?php echo e($producto->id_producto); ?>)">Editar</button>
+                  <button class="btn btn-primary" style="flex: 1;" onclick='editProduct(<?php echo json_encode($producto, 15, 512) ?>)'>Editar</button>
                   <form action="/productos/<?php echo e($producto->id_producto); ?>" method="POST" style="flex: 1;">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('DELETE'); ?>
@@ -79,16 +82,31 @@
 
       <!-- Formulario agregar producto -->
       <div id="formAgregarProducto" style="display: none; background: white; border-radius: 8px; padding: 30px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <h3 style="margin-top: 0;">Agregar Nuevo Producto</h3>
-        <form action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
+        <form id="productForm" action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
           <?php echo csrf_field(); ?>
+          <input type="hidden" name="_method" id="formMethod" value="POST">
+          <input type="hidden" name="imagen_url" id="imagenUrl" value="">
+          <input type="hidden" id="editingProductId" value="">
           <div>
+            <h3 id="formTitle" style="margin-top: 0;">Agregar Nuevo Producto</h3>
             <label>Nombre del Producto</label>
-            <input type="text" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="productoNombre" name="nombre" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
           </div>
           <div>
             <label>Descripción</label>
             <textarea name="descripcion" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; height: 100px;"></textarea>
+          </div>
+          <div>
+            <label>Categoría</label>
+            <select id="productoCategoria" name="categoria" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Selecciona categoría</option>
+              <option value="Accesorios">Accesorios</option>
+              <option value="Ropa">Ropa</option>
+              <option value="Alimentos">Alimentos</option>
+              <option value="Electrónica">Electrónica</option>
+              <option value="Hogar">Hogar</option>
+              <option value="Belleza">Belleza</option>
+            </select>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div>
@@ -110,12 +128,12 @@
             <input type="hidden" id="imagenData" name="imagen_data" value="">
             <div id="imagePreviewWrapper" style="margin-top: 15px; display: none;">
               <label>Vista previa</label>
-              <img id="imagePreview" src="" alt="Vista previa de la imagen" style="width: 100%; max-height: 240px; object-fit: contain; border: 1px solid #ddd; border-radius: 8px; display: block; margin-top: 10px;">
+              <img id="imagePreview" src="" alt="Vista previa de la imagen" style="width: 100%; max-height: 240px; object-fit: contain; background: transparent; border: 1px solid #ddd; border-radius: 8px; display: block; margin-top: 10px;">
             </div>
           </div>
           <div style="display: flex; gap: 10px;">
-            <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Producto</button>
-            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="clearImageInputs(); document.getElementById('formAgregarProducto').style.display='none'">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1;" id="formSubmitButton">Guardar Producto</button>
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="cancelProductForm()">Cancelar</button>
           </div>
         </form>
       </div>
@@ -125,8 +143,72 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-  function editProduct(id) {
-    MarketplaceApp.showNotification('Edición de productos próximamente');
+  function showAddProductForm() {
+    const form = document.getElementById('productForm');
+    const formTitle = document.getElementById('formTitle');
+    const formMethod = document.getElementById('formMethod');
+    const editId = document.getElementById('editingProductId');
+    const submitButton = document.getElementById('formSubmitButton');
+    const nameInput = document.getElementById('productoNombre');
+    const categorySelect = document.getElementById('productoCategoria');
+    const descriptionInput = document.querySelector('textarea[name="descripcion"]');
+    const priceInput = document.querySelector('input[name="precio"]');
+    const stockInput = document.querySelector('input[name="stock"]');
+    const imagenUrl = document.getElementById('imagenUrl');
+
+    formTitle.textContent = 'Agregar Nuevo Producto';
+    formMethod.value = 'POST';
+    editId.value = '';
+    form.action = '/productos/crear';
+    submitButton.textContent = 'Guardar Producto';
+
+    nameInput.value = '';
+    categorySelect.value = '';
+    descriptionInput.value = '';
+    priceInput.value = '';
+    stockInput.value = '';
+    imagenUrl.value = '';
+    clearImageInputs();
+    document.getElementById('formAgregarProducto').style.display = 'block';
+  }
+
+  function editProduct(product) {
+    const form = document.getElementById('productForm');
+    const formTitle = document.getElementById('formTitle');
+    const formMethod = document.getElementById('formMethod');
+    const editId = document.getElementById('editingProductId');
+    const submitButton = document.getElementById('formSubmitButton');
+    const nameInput = document.getElementById('productoNombre');
+    const categorySelect = document.getElementById('productoCategoria');
+    const descriptionInput = document.querySelector('textarea[name="descripcion"]');
+    const priceInput = document.querySelector('input[name="precio"]');
+    const stockInput = document.querySelector('input[name="stock"]');
+    const imagenUrl = document.getElementById('imagenUrl');
+
+    formTitle.textContent = 'Editar Producto';
+    formMethod.value = 'PUT';
+    editId.value = product.id_producto;
+    submitButton.textContent = 'Actualizar Producto';
+    form.action = '/productos/' + product.id_producto;
+
+    nameInput.value = product.nombre || '';
+    descriptionInput.value = product.descripcion || '';
+    priceInput.value = product.precio || '';
+    stockInput.value = product.stock || '';
+    categorySelect.value = product.categoria || '';
+    imagenUrl.value = product.imagen_url || '';
+    updateImagePreview(product.imagen_url || '');
+    document.getElementById('formAgregarProducto').style.display = 'block';
+    document.getElementById('imagenFile').value = null;
+  }
+
+  function cancelProductForm() {
+    document.getElementById('formAgregarProducto').style.display = 'none';
+    clearImageInputs();
+    const imagenUrl = document.getElementById('imagenUrl');
+    if (imagenUrl) {
+      imagenUrl.value = '';
+    }
   }
 
   function updateImagePreview(src) {

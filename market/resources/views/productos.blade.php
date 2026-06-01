@@ -68,15 +68,18 @@
               $store = $comercios->firstWhere('id_vendedor', $product->id_vendedor);
             @endphp
             <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})">
-              <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="product-image" onerror="this.style.display='none';">
+              <img src="{{ $product->imagen_url ? (\Illuminate\Support\Str::startsWith($product->imagen_url, ['http://','https://','//']) ? $product->imagen_url : asset(ltrim($product->imagen_url, '/'))) : asset('imagenes/blusa.png') }}" alt="{{ $product->nombre }}" class="product-image" onerror="this.onerror=null;this.src='{{ asset('imagenes/blusa.png') }}';">
               <div class="product-info">
-                <div class="product-category">General</div>
+                <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
                 <h3 class="product-name">{{ $product->nombre }}</h3>
                 <div class="product-store">🏪 {{ $store->nombre_negocio ?? 'Comercio local' }}</div>
                 <div class="product-description">{{ \Illuminate\Support\Str::limit($product->descripcion, 120) }}</div>
                 <div class="product-footer">
                   <div class="product-price">${{ number_format($product->precio, 2) }}</div>
                   <div class="product-rating">⭐ {{ number_format($product->avg_rating ?? 0, 2) }} <span>({{ $product->reviews_count ?? 0 }})</span></div>
+                </div>
+                <div style="margin-top: 12px;">
+                  <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $product->id_producto }});">Agregar al Carrito</button>
                 </div>
               </div>
             </div>
@@ -94,36 +97,66 @@
   const pageStores = @json($comercios);
   const pageProducts = @json($productos);
 
-  MarketplaceApp.comercios = pageStores.map(store => ({
-    id: store.id_vendedor,
-    nombre: store.nombre_negocio,
-    ubicacion: store.ubicacion || 'Ubicación no disponible',
-    telefono: store.telefono || '(Sin teléfono)',
-    email: store.email || 'info@marketplace.local',
-    descripcion: store.descripcion || 'Comercio local',
-    rating: 4.7,
-    foto: '/imagenes/blusa.png',
-  }));
+  function initializeProductosPage() {
+    if (!window.MarketplaceApp) {
+      setTimeout(initializeProductosPage, 50);
+      return;
+    }
 
-  MarketplaceApp.productos = pageProducts.map(product => ({
-    id: product.id_producto,
-    nombre: product.nombre,
-    descripcion: product.descripcion,
-    precio: parseFloat(product.precio),
-    stock: product.stock,
-    foto: product.imagen_url || '/imagenes/blusa.png',
-    comercioId: product.id_vendedor,
-    categoria: 'General',
-    ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
-    rating: parseFloat(product.avg_rating) || 0,
-    vendidos: product.reviews_count || 0,
-  }));
+    MarketplaceApp.comercios = pageStores.map(store => ({
+      id: store.id_vendedor,
+      nombre: store.nombre_negocio,
+      ubicacion: store.ubicacion || 'Ubicación no disponible',
+      telefono: store.telefono || '(Sin teléfono)',
+      email: store.email || 'info@marketplace.local',
+      descripcion: store.descripcion || 'Comercio local',
+      rating: 4.7,
+      foto: '/imagenes/blusa.png',
+    }));
+
+    MarketplaceApp.productos = pageProducts.map(product => ({
+      id: product.id_producto,
+      nombre: product.nombre,
+      descripcion: product.descripcion,
+      precio: parseFloat(product.precio),
+      stock: product.stock,
+      foto: product.imagen_url || '/imagenes/blusa.png',
+      comercioId: product.id_vendedor,
+      categoria: product.categoria || 'General',
+      ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
+      rating: parseFloat(product.avg_rating) || 0,
+      vendidos: product.reviews_count || 0,
+    }));
+
+    const query = getSearchQuery();
+    if (query) {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.value = query;
+      }
+    }
+
+    const priceInput = document.getElementById('filterPrice');
+    if (priceInput) {
+      priceInput.addEventListener('input', function() {
+        document.getElementById('priceDisplay').textContent = '$' + this.value;
+      });
+    }
+
+    applyFilters();
+    if (typeof updateUserDisplay === 'function') {
+      updateUserDisplay();
+    }
+    if (typeof updateCartBadge === 'function') {
+      updateCartBadge();
+    }
+  }
 
   function createProductCard(product) {
     const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
     return `
       <div class="product-card" onclick="goToProductDetail(${product.id})">
-        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.style.display='none';">
+        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.onerror=null;this.src='/imagenes/blusa.png';">
         <div class="product-info">
           <div class="product-category">${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
@@ -137,6 +170,7 @@
             <div style="display:flex; flex-direction:column; gap:8px;">
               <button class="btn btn-primary" onclick="event.stopPropagation(); goToProductDetail(${product.id})">Ver producto</button>
               <button class="btn btn-secondary" style="background:#f4f4f9; color:#333;" onclick="event.stopPropagation(); goToStore(${product.comercioId})">Ver tienda</button>
+              <button class="btn btn-primary" style="background:#4caf50;" onclick="event.stopPropagation(); addToCartById(${product.id});">Agregar al Carrito</button>
             </div>
           </div>
         </div>
@@ -199,17 +233,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    const query = getSearchQuery();
-    if (query) {
-      document.getElementById('searchInput').value = query;
-    }
-    document.getElementById('filterPrice').addEventListener('input', function() {
-      document.getElementById('priceDisplay').textContent = '$' + this.value;
-    });
-
-    applyFilters();
-    updateUserDisplay();
-    updateCartBadge();
+    initializeProductosPage();
   });
 </script>
 @endpush

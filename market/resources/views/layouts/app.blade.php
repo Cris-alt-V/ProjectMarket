@@ -103,6 +103,9 @@
             // Actualizar el usuario en localStorage si hay sesión activa
             if (currentUser) {
                 MarketplaceApp.setCurrentUser(currentUser);
+            } else if (storedUser) {
+                // Si la sesión del servidor terminó, limpiar el usuario guardado localmente.
+                MarketplaceApp.clearCurrentUser();
             }
             
             // Actualizar badge del carrito
