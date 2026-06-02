@@ -18,8 +18,9 @@
                 </div>
 
                 <div class="search-bar">
-                    <input type="text" id="searchInput" placeholder="Buscar productos, tiendas...">
+                    <input type="text" id="searchInput" placeholder="Buscar productos, tiendas..." autocomplete="off">
                     <button onclick="search()">🔍</button>
+                    <div class="search-suggestions" id="searchSuggestions"></div>
                 </div>
 
                 <div class="header-actions">

@@ -420,5 +420,111 @@ window.updateCartBadge = function() { return MarketplaceApp.updateCartBadge(); }
 window.updateUserDisplay = function() { return MarketplaceApp.updateUserDisplay(); };
 window.showNotification = function(msg) { return MarketplaceApp.showNotification(msg); };
 
+// Autocompletado del buscador
+function initializeSearchAutocomplete() {
+  const searchInput = document.getElementById('searchInput');
+  const suggestionsList = document.getElementById('searchSuggestions');
+  
+  if (!searchInput || !suggestionsList) return;
+
+  let debounceTimer;
+
+  searchInput.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    clearTimeout(debounceTimer);
+
+    if (query.length < 2) {
+      suggestionsList.classList.remove('active');
+      suggestionsList.innerHTML = '';
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      fetch(`/search/suggestions?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          displaySuggestions(data, suggestionsList);
+        })
+        .catch(err => console.error('Error fetching suggestions:', err));
+    }, 300);
+  });
+
+  // Cerrar suggestions al hacer click afuera
+  document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+      suggestionsList.classList.remove('active');
+    }
+  });
+}
+
+function displaySuggestions(data, suggestionsList) {
+  let html = '';
+  let hasResults = false;
+
+  // Productos
+  if (data.productos && data.productos.length > 0) {
+    hasResults = true;
+    html += '<div class="suggestion-group">';
+    html += '<div class="suggestion-group-title">Productos</div>';
+    data.productos.forEach(producto => {
+      const imagenUrl = producto.imagen_url ? 
+        (producto.imagen_url.startsWith('http') || producto.imagen_url.startsWith('//') ? 
+          producto.imagen_url : 
+          '/' + producto.imagen_url.replace(/^\/+/, '')) 
+        : '/images/placeholder.png';
+      html += `<div class="suggestion-item product" onclick="searchFor('${producto.nombre.replace(/'/g, "\\'")}')" title="${producto.nombre}">
+        <img src="${imagenUrl}" alt="${producto.nombre}" class="suggestion-image" onerror="this.src='/images/placeholder.png'">
+        <span>${producto.nombre}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Categorías
+  if (data.categorias && data.categorias.length > 0) {
+    hasResults = true;
+    html += '<div class="suggestion-group">';
+    html += '<div class="suggestion-group-title">Categorías</div>';
+    data.categorias.forEach(categoria => {
+      html += `<div class="suggestion-item category" onclick="searchFor('${categoria.replace(/'/g, "\\'")}')">${categoria}</div>`;
+    });
+    html += '</div>';
+  }
+
+  // Comercios
+  if (data.comercios && data.comercios.length > 0) {
+    hasResults = true;
+    html += '<div class="suggestion-group">';
+    html += '<div class="suggestion-group-title">Comercios</div>';
+    data.comercios.forEach(comercio => {
+      html += `<div class="suggestion-item store" onclick="searchFor('${comercio.replace(/'/g, "\\'")}')">${comercio}</div>`;
+    });
+    html += '</div>';
+  }
+
+  if (hasResults) {
+    suggestionsList.innerHTML = html;
+    suggestionsList.classList.add('active');
+  } else {
+    suggestionsList.innerHTML = '<div class="suggestion-item" style="color: #999;">No se encontraron resultados</div>';
+    suggestionsList.classList.add('active');
+  }
+}
+
+window.searchFor = function(query) {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = query;
+    document.getElementById('searchSuggestions').classList.remove('active');
+    search();
+  }
+};
+
+// Inicializar autocompletado cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+  initializeSearchAutocomplete();
+});
+
 // Expose the app object for legacy inline scripts
 window.MarketplaceApp = MarketplaceApp;

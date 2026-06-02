@@ -3,6 +3,23 @@
 @section('title', 'Marketplace Local - Inicio')
 
 @section('content')
+  <style>
+    .products-grid {
+      transition: transform 0.3s ease;
+    }
+    
+    .product-card-item {
+      flex: 0 0 calc(33.333% - 10px);
+      min-width: 220px;
+      max-width: 320px;
+      transition: transform 0.2s ease;
+    }
+    
+    .product-card-item:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+
   <section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 20px; border-radius: 8px; margin-bottom: 40px; text-align: center;">
     <h2 style="font-size: 2.5em; margin-bottom: 15px;">Descubre Productos Locales</h2>
     <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.9;">Apoya a tus negocios locales y encuentra lo que necesitas en tu comunidad</p>
@@ -14,48 +31,50 @@
     <div class="categories-grid" id="categoriesContainer"></div>
   </section>
 
-  <section class="filters-section">
-    <h3 style="margin-bottom: 15px; margin-top: 0;">Filtrar Resultados</h3>
-    <div class="filters-grid">
-      <div class="filter-group">
-        <label for="filterLocation">📍 Ubicación</label>
-        <input type="text" id="filterLocation" placeholder="Buscar por ubicación...">
-      </div>
-      <div class="filter-group">
-        <label for="filterPriceMin">💰 Precio Mínimo</label>
-        <input type="number" id="filterPriceMin" placeholder="0" min="0">
-      </div>
-      <div class="filter-group">
-        <label for="filterPriceMax">💰 Precio Máximo</label>
-        <input type="number" id="filterPriceMax" placeholder="1000" min="0">
-      </div>
-      <div class="filter-group">
-        <label for="filterCategory">📁 Categoría</label>
-        <select id="filterCategory">
-          <option value="">Todas las categorías</option>
-          <option value="General">General</option>
-          <option value="Accesorios">Accesorios</option>
-          <option value="Ropa">Ropa</option>
-          <option value="Alimentos">Alimentos</option>
-          <option value="Electrónica">Electrónica</option>
-          <option value="Hogar">Hogar</option>
-          <option value="Belleza">Belleza</option>
-        </select>
-      </div>
-      <div class="filter-group" style="justify-content: flex-end; align-self: end;">
-        <button class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
-      </div>
+  <section class="products-section">
+    <h2 class="section-title">⭐ Productos Populares</h2>
+    <div class="products-grid homepage-products-grid" style="display: grid; grid-template-columns: repeat(3, minmax(380px, 1fr)); gap: 15px; width: 100%;">
+      @foreach($popularProducts as $product)
+        <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})" style="cursor: pointer;">
+          <div style="width: 100%; height: 220px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+          </div>
+          <div class="product-info">
+            <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
+            <h3 class="product-name">{{ $product->nombre }}</h3>
+            <div class="product-store">🏪 {{ $product->nombre_negocio }}</div>
+            <div class="product-description">{{ $product->descripcion }}</div>
+            <div class="product-footer">
+              <div class="product-price">${{ number_format($product->precio, 2) }}</div>
+              <div class="product-rating">⭐ {{ number_format($product->avg_rating, 1) }} <span>({{ $product->reviews_count }} reseñas)</span></div>
+            </div>
+          </div>
+        </div>
+      @endforeach
     </div>
   </section>
 
   <section class="products-section">
-    <h2 class="section-title">⭐ Productos Destacados</h2>
-    <div class="products-grid" id="featuredProducts"></div>
-  </section>
-
-  <section class="products-section">
     <h2 class="section-title">🆕 Productos Recientes</h2>
-    <div class="products-grid" id="recentProducts"></div>
+    <div class="products-grid homepage-products-grid" style="display: grid; grid-template-columns: repeat(3, minmax(380px, 1fr)); gap: 15px; width: 100%;">
+      @foreach($recentProducts as $product)
+        <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})" style="cursor: pointer;">
+          <div style="width: 100%; height: 220px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+          </div>
+          <div class="product-info">
+            <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
+            <h3 class="product-name">{{ $product->nombre }}</h3>
+            <div class="product-store">🏪 {{ $product->nombre_negocio }}</div>
+            <div class="product-description">{{ $product->descripcion }}</div>
+            <div class="product-footer">
+              <div class="product-price">${{ number_format($product->precio, 2) }}</div>
+              <div class="product-rating">⭐ {{ number_format($product->avg_rating, 1) }} <span>({{ $product->reviews_count }} reseñas)</span></div>
+            </div>
+          </div>
+        </div>
+      @endforeach
+    </div>
   </section>
 
   <section class="products-section">
@@ -67,7 +86,6 @@
 @push('scripts')
 <script>
   const pageStores = @json($comercios);
-  const pageProducts = @json($productos);
 
   function initializeHomePage() {
     if (!window.MarketplaceApp) {
@@ -86,94 +104,23 @@
       foto: '',
     }));
 
-    MarketplaceApp.productos = pageProducts.map(product => ({
-      id: product.id_producto,
-      nombre: product.nombre,
-      descripcion: product.descripcion,
-      precio: parseFloat(product.precio) || 0,
-      stock: product.stock,
-      foto: product.imagen_url || '',
-      comercioId: product.id_vendedor,
-      categoria: product.categoria || 'General',
-      ubicacion: MarketplaceApp.comercios.find(c => c.id === product.id_vendedor)?.ubicacion || 'Local',
-      rating: 4.5,
-      vendidos: 0,
-    }));
-
-    initHomePage();
-  }
-
-  function createProductCard(product) {
-    const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
-    return `
-      <div class="product-card" onclick="goToProductDetail(${product.id})">
-        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.style.display='none';">
-        <div class="product-info">
-          <div class="product-category">${product.categoria}</div>
-          <h3 class="product-name">${product.nombre}</h3>
-          <div class="product-store">🏪 ${comercio.nombre}</div>
-          <div class="product-description">${product.descripcion}</div>
-          <div class="product-footer">
-            <div class="product-price">$${product.precio.toFixed(2)}</div>
-            <div class="product-rating">⭐ ${product.rating} <span>(${product.vendidos})</span></div>
+    if (document.getElementById('storesGrid')) {
+      document.getElementById('storesGrid').innerHTML = MarketplaceApp.comercios.map(store => `
+        <div class="store-card" onclick="goToStore(${store.id})">
+          <img src="${store.foto}" alt="${store.nombre}" class="product-image">
+          <div class="store-info">
+            <h3 class="store-name">${store.nombre}</h3>
+            <div class="store-location">📍 ${store.ubicacion}</div>
+            <p class="store-description">${store.descripcion}</p>
+            <div class="product-footer">
+              <div class="product-rating">⭐ ${store.rating}</div>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `).join('');
+    }
   }
 
-  function createStoreCard(store) {
-    return `
-      <div class="store-card" onclick="goToStore(${store.id})">
-        <img src="${store.foto}" alt="${store.nombre}" class="product-image">
-        <div class="store-info">
-          <h3 class="store-name">${store.nombre}</h3>
-          <div class="store-location">📍 ${store.ubicacion}</div>
-          <p class="store-description">${store.descripcion}</p>
-          <div class="product-footer">
-            <div class="product-rating">⭐ ${store.rating}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function applyFilters() {
-    const location = document.getElementById('filterLocation').value;
-    const category = document.getElementById('filterCategory').value;
-    const priceMin = parseFloat(document.getElementById('filterPriceMin').value);
-    const priceMax = parseFloat(document.getElementById('filterPriceMax').value);
-
-    const filteredProducts = MarketplaceApp.productos.filter(product => {
-      const matchesCategory = !category || product.categoria === category;
-      const matchesLocation = !location || product.ubicacion.toLowerCase().includes(location.toLowerCase());
-      const matchesPriceMin = isNaN(priceMin) || product.precio >= priceMin;
-      const matchesPriceMax = isNaN(priceMax) || product.precio <= priceMax;
-      return matchesCategory && matchesLocation && matchesPriceMin && matchesPriceMax;
-    });
-
-    const featured = filteredProducts.slice(0, 3);
-    const recent = filteredProducts.slice(-3);
-
-    document.getElementById('featuredProducts').innerHTML = featured.length ? featured.map(createProductCard).join('') : '<p>No hay productos destacados.</p>';
-    document.getElementById('recentProducts').innerHTML = recent.length ? recent.map(createProductCard).join('') : '<p>No hay productos recientes.</p>';
-  }
-
-  function initHomePage() {
-    document.getElementById('categoriesContainer').innerHTML = MarketplaceApp.categorias.map(cat => `
-      <div class="product-card" onclick="window.location.href='/productos?search=${encodeURIComponent(cat.nombre)}'">
-        <div style="font-size: 2em; margin-bottom: 10px;">${cat.icono}</div>
-        <h3 style="margin-bottom: 10px;">${cat.nombre}</h3>
-        <p>Explora productos en la categoría ${cat.nombre}.</p>
-      </div>
-    `).join('');
-
-    document.getElementById('storesGrid').innerHTML = MarketplaceApp.comercios.map(createStoreCard).join('');
-    applyFilters();
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    initializeHomePage();
-  });
+  document.addEventListener('DOMContentLoaded', initializeHomePage);
 </script>
 @endpush

@@ -9,12 +9,57 @@ class MarketController extends Controller
 {
     public function welcome()
     {
-        $productos = DB::table('productos')->limit(6)->get();
         $comercios = DB::table('vendedores')->limit(4)->get();
 
+        $productos = DB::table('productos as p')
+            ->join('vendedores as v', 'p.id_vendedor', '=', 'v.id_vendedor')
+            ->select(
+                'p.id_producto',
+                'p.nombre',
+                'p.descripcion',
+                'p.categoria',
+                'p.precio',
+                'p.stock',
+                'p.imagen_url',
+                'p.id_vendedor',
+                'v.nombre_negocio',
+                'v.ubicacion'
+            )
+            ->get();
+
+        $ratings = collect();
+        try {
+            $ratings = DB::table('reviews')
+                ->select('producto_id', DB::raw('AVG(rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+                ->groupBy('producto_id')
+                ->get()
+                ->keyBy('producto_id');
+        } catch (\Exception $e) {
+            try {
+                $ratings = DB::table('reseñas')
+                    ->select('id_producto', DB::raw('AVG(puntuacion) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+                    ->groupBy('id_producto')
+                    ->get()
+                    ->keyBy('id_producto');
+            } catch (\Exception $inner) {
+                $ratings = collect();
+            }
+        }
+
+        $productos = $productos->map(function ($product) use ($ratings) {
+            $meta = $ratings->get($product->id_producto);
+            $product->avg_rating = $meta ? round($meta->avg_rating, 2) : 0;
+            $product->reviews_count = $meta ? (int)$meta->reviews_count : 0;
+            return $product;
+        });
+
+        $popularProducts = $productos->sortByDesc('avg_rating')->take(3)->values();
+        $recentProducts = $productos->sortByDesc('id_producto')->take(3)->values();
+
         return view('welcome', [
-            'productos' => $productos,
             'comercios' => $comercios,
+            'popularProducts' => $popularProducts,
+            'recentProducts' => $recentProducts,
         ]);
     }
 
@@ -86,6 +131,58 @@ class MarketController extends Controller
     public function registro()
     {
         return view('registro');
+    }
+
+    public function searchSuggestions(Request $request)
+    {
+        $query = $request->input('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $searchQuery = "%$query%";
+        
+        // Obtener sugerencias de productos con imágenes
+        $productos = DB::table('productos')
+            ->select('nombre', 'imagen_url', 'id_producto')
+            ->where('nombre', 'like', $searchQuery)
+            ->distinct()
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'nombre' => $item->nombre,
+                    'imagen_url' => $item->imagen_url,
+                    'id_producto' => $item->id_producto
+                ];
+            })
+            ->values();
+
+        // Obtener sugerencias de categorías
+        $categorias = DB::table('productos')
+            ->select('categoria')
+            ->where('categoria', 'like', $searchQuery)
+            ->distinct()
+            ->limit(3)
+            ->pluck('categoria');
+
+        // Obtener sugerencias de comercios
+        $comercios = DB::table('vendedores')
+            ->select('nombre_negocio')
+            ->where('nombre_negocio', 'like', $searchQuery)
+            ->distinct()
+            ->limit(3)
+            ->pluck('nombre_negocio');
+
+        // Combinar y retornar sugerencias
+        $sugerencias = [
+            'productos' => $productos->toArray(),
+            'categorias' => $categorias->toArray(),
+            'comercios' => $comercios->toArray(),
+        ];
+
+        return response()->json($sugerencias);
     }
 
     public function micuenta()

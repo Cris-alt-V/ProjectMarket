@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 Route::get('/', [MarketController::class, 'welcome']);
 Route::get('/productos', [ProductController::class, 'index']);
 Route::get('/producto/{id}', [ProductController::class, 'show']);
+Route::get('/search/suggestions', [MarketController::class, 'searchSuggestions']);
 // Reviews
 Route::post('/producto/{id}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->middleware('auth.session');
 

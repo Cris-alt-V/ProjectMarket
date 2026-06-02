@@ -5,6 +5,27 @@
 @section('content')
   <h1 style="margin-bottom: 30px; color: #333;">Explorar Productos</h1>
 
+  <style>
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .product-card-item {
+      min-height: auto;
+    }
+    @media (max-width: 980px) {
+      .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
   <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-bottom: 40px;">
     <aside style="background: white; padding: 20px; border-radius: 8px; height: fit-content; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">Filtros</h3>
@@ -62,14 +83,16 @@
         </select>
       </div>
 
-      <div class="products-grid" id="productsContainer">
+      <div class="products-grid" id="productsContainer" style="max-width: 1200px;">
         @if(count($productos) > 0)
           @foreach($productos as $product)
             @php
               $store = $comercios->firstWhere('id_vendedor', $product->id_vendedor);
             @endphp
-            <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})">
-              <img src="{{ $product->imagen_url ? (\Illuminate\Support\Str::startsWith($product->imagen_url, ['http://','https://','//']) ? $product->imagen_url : asset(ltrim($product->imagen_url, '/'))) : '' }}" alt="{{ $product->nombre }}" class="product-image">
+            <div class="product-card product-card-item" onclick="goToProductDetail({{ $product->id_producto }})">
+              <div style="width: 100%; height: 180px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <img src="{{ $product->imagen_url ? (\Illuminate\Support\Str::startsWith($product->imagen_url, ['http://','https://','//']) ? $product->imagen_url : asset(ltrim($product->imagen_url, '/'))) : '' }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+              </div>
               <div class="product-info">
                 <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
                 <h3 class="product-name">{{ $product->nombre }}</h3>
@@ -92,6 +115,7 @@
           <p style="grid-column: 1/-1; text-align: center; color: #666;">No hay productos publicados.</p>
         @endif
       </div>
+      <div id="productsPagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 25px;"></div>
     </div>
   </div>
 @endsection
@@ -157,13 +181,18 @@
     }
   }
 
+  let currentProductPage = 1;
+  const productsPerPage = 15;
+
   function createProductCard(product) {
     const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
       const isOutOfStock = Number(product.stock) <= 0;
       const stockLabel = isOutOfStock ? 'sin existencias' : product.stock;
       return `
-      <div class="product-card" onclick="goToProductDetail(${product.id})">
-        <img src="${product.foto}" alt="${product.nombre}" class="product-image" onerror="this.style.display='none';">
+      <div class="product-card product-card-item" onclick="goToProductDetail(${product.id})">
+        <div style="width: 100%; height: 180px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+          <img src="${product.foto}" alt="${product.nombre}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+        </div>
         <div class="product-info">
           <div class="product-category">Categoría: ${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
@@ -186,6 +215,67 @@
         </div>
       </div>
     `;
+  }
+
+  function renderProductsPage(products, page) {
+    const totalPages = Math.max(1, Math.ceil(products.length / productsPerPage));
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    currentProductPage = page;
+
+    const startIndex = (page - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const pageProducts = products.slice(startIndex, endIndex);
+
+    document.getElementById('productsContainer').innerHTML = pageProducts.length ? pageProducts.map(createProductCard).join('') : '<p style="grid-column: 1/-1; text-align: center; color: #666;">No se encontraron productos.</p>';
+
+    const paginationDiv = document.getElementById('productsPagination');
+    if (totalPages > 1) {
+      paginationDiv.innerHTML = `
+        <button type="button" class="btn btn-secondary" ${page <= 1 ? 'disabled' : ''} onclick="changeProductPage(-1)">← Anteriores</button>
+        <span style="color: #666; font-size: 0.95em;">Página ${page} de ${totalPages}</span>
+        <button type="button" class="btn btn-secondary" ${page >= totalPages ? 'disabled' : ''} onclick="changeProductPage(1)">Siguientes →</button>
+      `;
+      paginationDiv.style.display = 'flex';
+    } else {
+      paginationDiv.innerHTML = '';
+      paginationDiv.style.display = 'none';
+    }
+  }
+
+  function changeProductPage(delta) {
+    const query = getSearchQuery();
+    const category = document.getElementById('filterCategory').value;
+    const location = document.getElementById('filterLocation').value;
+    const rating = parseFloat(document.getElementById('filterRating').value) || 0;
+    const sortBy = document.getElementById('sortBy').value;
+    const priceMax = parseFloat(document.getElementById('filterPrice').value) || 1000;
+
+    let results = MarketplaceApp.productos.filter(product => {
+      const matchesQuery = query ? product.nombre.toLowerCase().includes(query.toLowerCase()) || product.descripcion.toLowerCase().includes(query.toLowerCase()) || product.categoria.toLowerCase().includes(query.toLowerCase()) : true;
+      const matchesCategory = !category || product.categoria === category;
+      const matchesLocation = !location || product.ubicacion.toLowerCase().includes(location.toLowerCase());
+      const matchesRating = rating === 0 || product.rating >= rating;
+      const matchesPrice = product.precio <= priceMax;
+      return matchesQuery && matchesCategory && matchesLocation && matchesRating && matchesPrice;
+    });
+
+    switch (sortBy) {
+      case 'precio-asc':
+        results.sort((a, b) => a.precio - b.precio);
+        break;
+      case 'precio-desc':
+        results.sort((a, b) => b.precio - a.precio);
+        break;
+      case 'rating':
+        results.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'vendidos':
+        results.sort((a, b) => b.vendidos - a.vendidos);
+        break;
+    }
+
+    renderProductsPage(results, currentProductPage + delta);
   }
 
   function updateResultCount(products) {
@@ -234,7 +324,7 @@
         break;
     }
 
-    document.getElementById('productsContainer').innerHTML = results.length ? results.map(createProductCard).join('') : '<p style="grid-column: 1/-1; text-align: center; color: #666;">No se encontraron productos.</p>';
+    renderProductsPage(results, 1);
     updateResultCount(results);
   }
 
