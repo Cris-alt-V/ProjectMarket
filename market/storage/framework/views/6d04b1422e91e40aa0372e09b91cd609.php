@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Explorar Productos - Marketplace Local'); ?>
 
-@section('title', 'Explorar Productos - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <h1 style="margin-bottom: 30px; color: #333;">Explorar Productos</h1>
 
   <style>
@@ -84,46 +82,46 @@
       </div>
 
       <div class="products-grid" id="productsContainer" style="max-width: 1200px;">
-        @if(count($productos) > 0)
-          @foreach($productos as $product)
-            @php
+        <?php if(count($productos) > 0): ?>
+          <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
               $store = $comercios->firstWhere('id_vendedor', $product->id_vendedor);
-            @endphp
-            <div class="product-card product-card-item" onclick="goToProductDetail({{ $product->id_producto }})">
+            ?>
+            <div class="product-card product-card-item" onclick="goToProductDetail(<?php echo e($product->id_producto); ?>)">
               <div style="width: 100%; height: 180px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                <img src="{{ $product->imagen_url ? (\Illuminate\Support\Str::startsWith($product->imagen_url, ['http://','https://','//']) ? $product->imagen_url : asset(ltrim($product->imagen_url, '/'))) : '' }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                <img src="<?php echo e($product->imagen_url ? (\Illuminate\Support\Str::startsWith($product->imagen_url, ['http://','https://','//']) ? $product->imagen_url : asset(ltrim($product->imagen_url, '/'))) : ''); ?>" alt="<?php echo e($product->nombre); ?>" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
               </div>
               <div class="product-info">
-                <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
-                <h3 class="product-name">{{ $product->nombre }}</h3>
-                <div class="product-store">🏪 {{ $store->nombre_negocio ?? 'Comercio local' }}</div>
-                <div class="product-description">{{ \Illuminate\Support\Str::limit($product->descripcion, 120) }}</div>
+                <div class="product-category"><?php echo e($product->categoria ?? 'General'); ?></div>
+                <h3 class="product-name"><?php echo e($product->nombre); ?></h3>
+                <div class="product-store">🏪 <?php echo e($store->nombre_negocio ?? 'Comercio local'); ?></div>
+                <div class="product-description"><?php echo e(\Illuminate\Support\Str::limit($product->descripcion, 120)); ?></div>
                 <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
-                  <span>Existencias: {{ $product->stock > 0 ? $product->stock : 'sin existencias' }}</span>
+                  <span>Existencias: <?php echo e($product->stock > 0 ? $product->stock : 'sin existencias'); ?></span>
                 </div>
                 <div class="product-footer">
-                  <div class="product-price">${{ number_format($product->precio, 2) }}</div>
-                  <div class="product-rating">⭐ {{ number_format($product->avg_rating ?? 0, 2) }} <span>({{ $product->reviews_count ?? 0 }})</span></div>
+                  <div class="product-price">$<?php echo e(number_format($product->precio, 2)); ?></div>
+                  <div class="product-rating">⭐ <?php echo e(number_format($product->avg_rating ?? 0, 2)); ?> <span>(<?php echo e($product->reviews_count ?? 0); ?>)</span></div>
                 </div>
                 <div style="margin-top: 12px;">
-                  <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById({{ $product->id_producto }});" {{ $product->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : '' }}>{{ $product->stock > 0 ? 'Agregar al Carrito' : 'Agotado' }}</button>
+                  <button class="btn btn-primary" onclick="event.stopPropagation(); addToCartById(<?php echo e($product->id_producto); ?>);" <?php echo e($product->stock <= 0 ? 'disabled style="opacity:.6;cursor:not-allowed;"' : ''); ?>><?php echo e($product->stock > 0 ? 'Agregar al Carrito' : 'Agotado'); ?></button>
                 </div>
               </div>
             </div>
-          @endforeach
-        @else
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        <?php else: ?>
           <p style="grid-column: 1/-1; text-align: center; color: #666;">No hay productos publicados.</p>
-        @endif
+        <?php endif; ?>
       </div>
       <div id="productsPagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 25px;"></div>
     </div>
   </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-  const pageStores = @json($comercios);
-  const pageProducts = @json($productos);
+  const pageStores = <?php echo json_encode($comercios, 15, 512) ?>;
+  const pageProducts = <?php echo json_encode($productos, 15, 512) ?>;
 
   function initializeProductosPage() {
     if (!window.MarketplaceApp) {
@@ -341,4 +339,6 @@
     initializeProductosPage();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\franc\OneDrive\Escritorio\sexopaye\ProjectMarket\market\resources\views/productos.blade.php ENDPATH**/ ?>

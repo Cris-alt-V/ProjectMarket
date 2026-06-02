@@ -53,6 +53,20 @@ class MarketController extends Controller
             return $product;
         });
 
+        $storeRatings = DB::table('reviews')
+            ->join('productos', 'reviews.producto_id', '=', 'productos.id_producto')
+            ->select('productos.id_vendedor', DB::raw('AVG(reviews.rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+            ->groupBy('productos.id_vendedor')
+            ->get()
+            ->keyBy('id_vendedor');
+
+        $comercios = $comercios->map(function ($store) use ($storeRatings) {
+            $meta = $storeRatings->get($store->id_vendedor);
+            $store->avg_rating = $meta ? round($meta->avg_rating, 2) : 0;
+            $store->reviews_count = $meta ? (int)$meta->reviews_count : 0;
+            return $store;
+        });
+
         $popularProducts = $productos->sortByDesc('avg_rating')->take(3)->values();
         $recentProducts = $productos->sortByDesc('id_producto')->take(3)->values();
 
@@ -116,6 +130,28 @@ class MarketController extends Controller
         }
 
         $productos = DB::table('productos')->where('id_vendedor', $tienda->id_vendedor)->get();
+
+        $productRatings = DB::table('reviews')
+            ->select('producto_id', DB::raw('AVG(rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+            ->groupBy('producto_id')
+            ->get()
+            ->keyBy('producto_id');
+
+        $productos = $productos->map(function ($product) use ($productRatings) {
+            $meta = $productRatings->get($product->id_producto);
+            $product->avg_rating = $meta ? round($meta->avg_rating, 2) : 0;
+            $product->reviews_count = $meta ? (int)$meta->reviews_count : 0;
+            return $product;
+        });
+
+        $storeMeta = DB::table('reviews')
+            ->join('productos', 'reviews.producto_id', '=', 'productos.id_producto')
+            ->where('productos.id_vendedor', $tienda->id_vendedor)
+            ->select(DB::raw('AVG(reviews.rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+            ->first();
+
+        $tienda->avg_rating = $storeMeta && $storeMeta->avg_rating ? round($storeMeta->avg_rating, 2) : 0;
+        $tienda->reviews_count = $storeMeta ? (int)$storeMeta->reviews_count : 0;
 
         return view('tienda', [
             'comercio' => $tienda,
@@ -231,6 +267,20 @@ class MarketController extends Controller
     public function comercios()
     {
         $comercios = DB::table('vendedores')->get();
+
+        $storeRatings = DB::table('reviews')
+            ->join('productos', 'reviews.producto_id', '=', 'productos.id_producto')
+            ->select('productos.id_vendedor', DB::raw('AVG(reviews.rating) as avg_rating'), DB::raw('COUNT(*) as reviews_count'))
+            ->groupBy('productos.id_vendedor')
+            ->get()
+            ->keyBy('id_vendedor');
+
+        $comercios = $comercios->map(function ($store) use ($storeRatings) {
+            $meta = $storeRatings->get($store->id_vendedor);
+            $store->avg_rating = $meta ? round($meta->avg_rating, 2) : 0;
+            $store->reviews_count = $meta ? (int)$meta->reviews_count : 0;
+            return $store;
+        });
 
         return view('comercios', [
             'comercios' => $comercios,

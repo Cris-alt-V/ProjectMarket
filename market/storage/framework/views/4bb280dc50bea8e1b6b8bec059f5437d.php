@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Marketplace Local - Inicio'); ?>
 
-@section('title', 'Marketplace Local - Inicio')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <style>
     .products-grid {
       transition: transform 0.3s ease;
@@ -34,46 +32,46 @@
   <section class="products-section">
     <h2 class="section-title">⭐ Productos Populares</h2>
     <div class="products-grid homepage-products-grid" style="display: grid; grid-template-columns: repeat(3, minmax(380px, 1fr)); gap: 15px; width: 100%;">
-      @foreach($popularProducts as $product)
-        <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})" style="cursor: pointer;">
+      <?php $__currentLoopData = $popularProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <div class="product-card" onclick="goToProductDetail(<?php echo e($product->id_producto); ?>)" style="cursor: pointer;">
           <div style="width: 100%; height: 220px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-            <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+            <img src="<?php echo e($product->imagen_url); ?>" alt="<?php echo e($product->nombre); ?>" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
           </div>
           <div class="product-info">
-            <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
-            <h3 class="product-name">{{ $product->nombre }}</h3>
-            <div class="product-store">🏪 {{ $product->nombre_negocio }}</div>
-            <div class="product-description">{{ $product->descripcion }}</div>
+            <div class="product-category"><?php echo e($product->categoria ?? 'General'); ?></div>
+            <h3 class="product-name"><?php echo e($product->nombre); ?></h3>
+            <div class="product-store">🏪 <?php echo e($product->nombre_negocio); ?></div>
+            <div class="product-description"><?php echo e($product->descripcion); ?></div>
             <div class="product-footer">
-              <div class="product-price">${{ number_format($product->precio, 2) }}</div>
-              <div class="product-rating">⭐ {{ number_format($product->avg_rating, 1) }} <span>({{ $product->reviews_count }} reseñas)</span></div>
+              <div class="product-price">$<?php echo e(number_format($product->precio, 2)); ?></div>
+              <div class="product-rating">⭐ <?php echo e(number_format($product->avg_rating, 1)); ?> <span>(<?php echo e($product->reviews_count); ?> reseñas)</span></div>
             </div>
           </div>
         </div>
-      @endforeach
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
   </section>
 
   <section class="products-section">
     <h2 class="section-title">🆕 Productos Recientes</h2>
     <div class="products-grid homepage-products-grid" style="display: grid; grid-template-columns: repeat(3, minmax(380px, 1fr)); gap: 15px; width: 100%;">
-      @foreach($recentProducts as $product)
-        <div class="product-card" onclick="goToProductDetail({{ $product->id_producto }})" style="cursor: pointer;">
+      <?php $__currentLoopData = $recentProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <div class="product-card" onclick="goToProductDetail(<?php echo e($product->id_producto); ?>)" style="cursor: pointer;">
           <div style="width: 100%; height: 220px; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-            <img src="{{ $product->imagen_url }}" alt="{{ $product->nombre }}" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+            <img src="<?php echo e($product->imagen_url); ?>" alt="<?php echo e($product->nombre); ?>" class="product-image" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
           </div>
           <div class="product-info">
-            <div class="product-category">{{ $product->categoria ?? 'General' }}</div>
-            <h3 class="product-name">{{ $product->nombre }}</h3>
-            <div class="product-store">🏪 {{ $product->nombre_negocio }}</div>
-            <div class="product-description">{{ $product->descripcion }}</div>
+            <div class="product-category"><?php echo e($product->categoria ?? 'General'); ?></div>
+            <h3 class="product-name"><?php echo e($product->nombre); ?></h3>
+            <div class="product-store">🏪 <?php echo e($product->nombre_negocio); ?></div>
+            <div class="product-description"><?php echo e($product->descripcion); ?></div>
             <div class="product-footer">
-              <div class="product-price">${{ number_format($product->precio, 2) }}</div>
-              <div class="product-rating">⭐ {{ number_format($product->avg_rating, 1) }} <span>({{ $product->reviews_count }} reseñas)</span></div>
+              <div class="product-price">$<?php echo e(number_format($product->precio, 2)); ?></div>
+              <div class="product-rating">⭐ <?php echo e(number_format($product->avg_rating, 1)); ?> <span>(<?php echo e($product->reviews_count); ?> reseñas)</span></div>
             </div>
           </div>
         </div>
-      @endforeach
+      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
   </section>
 
@@ -81,11 +79,11 @@
     <h2 class="section-title">🏪 Comercios Destacados</h2>
     <div class="store-grid" id="storesGrid"></div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-  const pageStores = @json($comercios);
+  const pageStores = <?php echo json_encode($comercios, 15, 512) ?>;
 
   function initializeHomePage() {
     if (!window.MarketplaceApp) {
@@ -123,4 +121,6 @@
 
   document.addEventListener('DOMContentLoaded', initializeHomePage);
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\franc\OneDrive\Escritorio\sexopaye\ProjectMarket\market\resources\views/welcome.blade.php ENDPATH**/ ?>

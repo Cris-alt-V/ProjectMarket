@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Comercios - Marketplace Local'); ?>
 
-@section('title', 'Comercios - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <h1 style="margin-bottom: 30px; color: #333;">Nuestros Comercios</h1>
 
   <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -39,28 +37,28 @@
   </div>
 
   <div class="store-grid" id="storesContainer">
-    @forelse ($comercios as $store)
-      <div class="store-card" onclick="goToStore({{ $store->id_vendedor }})">
+    <?php $__empty_1 = true; $__currentLoopData = $comercios; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $store): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+      <div class="store-card" onclick="goToStore(<?php echo e($store->id_vendedor); ?>)">
         <div style="background: #f5f5f5; border-radius: 8px; padding: 20px; text-align: center; font-size: 2em;">🏪</div>
         <div style="margin-top: 15px;">
-          <h3 class="store-name">{{ $store->nombre_negocio ?? 'Comercio local' }}</h3>
-          <div class="store-location">📍 {{ $store->ubicacion ?? 'Ubicación no disponible' }}</div>
-          <p class="store-description">{{ $store->descripcion ?? 'Descripción no disponible' }}</p>
+          <h3 class="store-name"><?php echo e($store->nombre_negocio ?? 'Comercio local'); ?></h3>
+          <div class="store-location">📍 <?php echo e($store->ubicacion ?? 'Ubicación no disponible'); ?></div>
+          <p class="store-description"><?php echo e($store->descripcion ?? 'Descripción no disponible'); ?></p>
           <div class="product-footer" style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <div class="store-rating">⭐ {{ number_format($store->avg_rating ?? 0, 1) }}</div>
-            <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); goToStore({{ $store->id_vendedor }})">Ver Tienda</button>
+            <div class="store-rating">⭐ <?php echo e(number_format($store->avg_rating ?? 0, 1)); ?></div>
+            <button class="btn btn-small btn-primary" onclick="event.stopPropagation(); goToStore(<?php echo e($store->id_vendedor); ?>)">Ver Tienda</button>
           </div>
         </div>
       </div>
-    @empty
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
       <p style="color: #666;">No hay comercios disponibles.</p>
-    @endforelse
+    <?php endif; ?>
   </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-  const pageStores = @json($comercios);
+  const pageStores = <?php echo json_encode($comercios, 15, 512) ?>;
 
   function initializeComerciosPage() {
     if (!window.MarketplaceApp) {
@@ -148,4 +146,6 @@
 
   document.addEventListener('DOMContentLoaded', initializeComerciosPage);
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\franc\OneDrive\Escritorio\sexopaye\ProjectMarket\market\resources\views/comercios.blade.php ENDPATH**/ ?>
