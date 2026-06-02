@@ -43,10 +43,12 @@
 
       <h3 style="margin-bottom: 20px;">Mis Productos</h3>
       <?php if($productos->count() > 0): ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        <div id="productosGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
           <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-              <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : ''); ?>" alt="<?php echo e($producto->nombre); ?>" style="width: 100%; height: 200px; object-fit: contain; background: white; border-bottom: 1px solid #eee;">
+            <div class="product-card-item" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="width: 100%; height: 200px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : ''); ?>" alt="<?php echo e($producto->nombre); ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+              </div>
               <div style="padding: 15px;">
                 <h4 style="margin: 0 0 10px 0;"><?php echo e($producto->nombre); ?></h4>
                 <p style="color: #666; font-size: 0.9em; margin: 5px 0;"><?php echo e(Str::limit($producto->descripcion, 100)); ?></p>
@@ -74,6 +76,11 @@
             </div>
           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
+        <div id="productPagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 25px;">
+          <button type="button" id="prevProductsBtn" class="btn btn-secondary">← Anteriores</button>
+          <span id="productPageInfo" style="color: #666; font-size: 0.95em;">Página 1</span>
+          <button type="button" id="nextProductsBtn" class="btn btn-secondary">Siguientes →</button>
+        </div>
       <?php else: ?>
         <div style="background: #f0f0f0; border-radius: 8px; padding: 30px; text-align: center;">
           <p style="color: #666; margin: 0;">No tienes productos publicados. ¡Comienza ahora!</p>
@@ -81,12 +88,14 @@
       <?php endif; ?>
 
       <!-- Formulario agregar producto -->
-      <div id="formAgregarProducto" style="display: none; background: white; border-radius: 8px; padding: 30px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <form id="productForm" action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
-          <?php echo csrf_field(); ?>
-          <input type="hidden" name="_method" id="formMethod" value="POST">
-          <input type="hidden" name="imagen_url" id="imagenUrl" value="">
-          <input type="hidden" id="editingProductId" value="">
+      <div id="productModalOverlay" style="display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.55); align-items: center; justify-content: center; padding: 12px; overflow-y: auto;">
+        <div id="formAgregarProducto" style="width: 100%; max-width: 620px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 14px 50px rgba(0,0,0,0.25); position: relative; max-height: calc(100vh - 40px); overflow-y: auto;">
+          <button type="button" onclick="cancelProductForm()" style="position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: 50%; border: none; background: #ccc; color: #333; font-size: 20px; line-height: 1; cursor: pointer;">×</button>
+          <form id="productForm" action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="_method" id="formMethod" value="POST">
+            <input type="hidden" name="imagen_url" id="imagenUrl" value="">
+            <input type="hidden" id="editingProductId" value="">
           <div>
             <h3 id="formTitle" style="margin-top: 0;">Agregar Nuevo Producto</h3>
             <label>Nombre del Producto</label>
@@ -125,11 +134,16 @@
               <p style="margin: 0 0 10px 0;">Haz clic, arrastra o pega una imagen aquí</p>
               <p style="margin: 0; font-size: 0.9em;">También puedes usar el botón de archivo o pegar desde el portapapeles</p>
             </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px;">
+              <button type="button" id="pasteImageButton" class="btn btn-secondary" style="flex: 1; min-width: 140px;">Pegar imagen</button>
+              <span id="pasteStatus" style="color: #666; font-size: 0.9em; flex: 2;">Subir imagen desde el portapapeles.</span>
+            </div>
             <input type="file" id="imagenFile" name="imagen_file" accept="image/*" style="display: none;">
             <input type="hidden" id="imagenData" name="imagen_data" value="">
-            <div id="imagePreviewWrapper" style="margin-top: 15px; display: none;">
-              <label>Vista previa</label>
-              <img id="imagePreview" src="" alt="Vista previa de la imagen" style="width: 100%; max-height: 240px; object-fit: contain; background: transparent; border: 1px solid #ddd; border-radius: 8px; display: block; margin-top: 10px;">
+            <div id="imagePreviewWrapper" style="margin-top: 15px; display: none; position: relative; border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #fafafa;">
+              <label style="display: block; margin-bottom: 8px;">Vista previa</label>
+              <button type="button" id="clearImageButton" onclick="clearImageInputs()" style="position: absolute; top: 10px; right: 10px; border: none; background: rgba(0,0,0,0.6); color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
+              <img id="imagePreview" src="" alt="Vista previa de la imagen" style="width: 100%; max-height: 240px; object-fit: contain; background: transparent; border-radius: 8px; display: block; margin-top: 10px;">
             </div>
           </div>
           <div style="display: flex; gap: 10px;">
@@ -156,6 +170,7 @@
     const priceInput = document.querySelector('input[name="precio"]');
     const stockInput = document.querySelector('input[name="stock"]');
     const imagenUrl = document.getElementById('imagenUrl');
+    const modalOverlay = document.getElementById('productModalOverlay');
 
     formTitle.textContent = 'Agregar Nuevo Producto';
     formMethod.value = 'POST';
@@ -170,7 +185,9 @@
     stockInput.value = '';
     imagenUrl.value = '';
     clearImageInputs();
-    document.getElementById('formAgregarProducto').style.display = 'block';
+    if (modalOverlay) {
+      modalOverlay.style.display = 'flex';
+    }
   }
 
   function editProduct(product) {
@@ -185,6 +202,7 @@
     const priceInput = document.querySelector('input[name="precio"]');
     const stockInput = document.querySelector('input[name="stock"]');
     const imagenUrl = document.getElementById('imagenUrl');
+    const modalOverlay = document.getElementById('productModalOverlay');
 
     formTitle.textContent = 'Editar Producto';
     formMethod.value = 'PUT';
@@ -199,12 +217,17 @@
     categorySelect.value = product.categoria || '';
     imagenUrl.value = product.imagen_url || '';
     updateImagePreview(product.imagen_url || '');
-    document.getElementById('formAgregarProducto').style.display = 'block';
+    if (modalOverlay) {
+      modalOverlay.style.display = 'flex';
+    }
     document.getElementById('imagenFile').value = null;
   }
 
   function cancelProductForm() {
-    document.getElementById('formAgregarProducto').style.display = 'none';
+    const modalOverlay = document.getElementById('productModalOverlay');
+    if (modalOverlay) {
+      modalOverlay.style.display = 'none';
+    }
     clearImageInputs();
     const imagenUrl = document.getElementById('imagenUrl');
     if (imagenUrl) {
@@ -231,19 +254,126 @@
   function clearImageInputs() {
     const fileInput = document.getElementById('imagenFile');
     const dataInput = document.getElementById('imagenData');
+    const imagenUrl = document.getElementById('imagenUrl');
+    const pasteStatus = document.getElementById('pasteStatus');
     if (fileInput) {
       fileInput.value = null;
     }
     if (dataInput) {
       dataInput.value = '';
     }
+    if (imagenUrl) {
+      imagenUrl.value = '';
+    }
+    if (pasteStatus) {
+      pasteStatus.textContent = 'Usa este botón para subir una imagen desde el portapapeles.';
+    }
     updateImagePreview(null);
+  }
+
+  async function pasteClipboardImage() {
+    const pasteStatus = document.getElementById('pasteStatus');
+    const fileInput = document.getElementById('imagenFile');
+    const dataInput = document.getElementById('imagenData');
+
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+      if (pasteStatus) {
+        pasteStatus.textContent = 'Tu navegador no soporta pegar imágenes directamente. Usa Ctrl+V en el área o selecciona un archivo.';
+      }
+      return;
+    }
+
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      for (const item of clipboardItems) {
+        const imageType = item.types.find(type => type.startsWith('image/'));
+        if (!imageType) {
+          continue;
+        }
+
+        const blob = await item.getType(imageType);
+        if (!blob) {
+          continue;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (dataInput) {
+            dataInput.value = e.target.result;
+          }
+          if (fileInput) {
+            fileInput.value = null;
+          }
+          updateImagePreview(e.target.result);
+          if (pasteStatus) {
+            pasteStatus.textContent = 'Imagen pegada desde el portapapeles.';
+          }
+        };
+        reader.readAsDataURL(blob);
+        return;
+      }
+
+      if (pasteStatus) {
+        pasteStatus.textContent = 'No se encontró una imagen en el portapapeles.';
+      }
+    } catch (error) {
+      if (pasteStatus) {
+        pasteStatus.textContent = 'Error al leer el portapapeles. Copia una imagen y vuelve a intentar.';
+      }
+      console.error('Clipboard paste error:', error);
+    }
+  }
+
+  let currentProductPage = 1;
+  const productsPerPage = 15;
+
+  function renderProductPage(page) {
+    const cards = Array.from(document.querySelectorAll('.product-card-item'));
+    const prevBtn = document.getElementById('prevProductsBtn');
+    const nextBtn = document.getElementById('nextProductsBtn');
+    const pageInfo = document.getElementById('productPageInfo');
+    const paginationWrapper = document.getElementById('productPagination');
+    const totalPages = Math.max(1, Math.ceil(cards.length / productsPerPage));
+
+    if (page < 1) {
+      page = 1;
+    }
+    if (page > totalPages) {
+      page = totalPages;
+    }
+
+    currentProductPage = page;
+    const startIndex = (page - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+
+    cards.forEach((card, index) => {
+      card.style.display = index >= startIndex && index < endIndex ? 'block' : 'none';
+    });
+
+    if (pageInfo) {
+      pageInfo.textContent = `Página ${page} de ${totalPages}`;
+    }
+    if (prevBtn) {
+      prevBtn.disabled = page <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = page >= totalPages;
+    }
+    if (paginationWrapper) {
+      paginationWrapper.style.display = totalPages > 1 ? 'flex' : 'none';
+    }
+  }
+
+  function changeProductPage(delta) {
+    renderProductPage(currentProductPage + delta);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
     const dropArea = document.getElementById('imageDropArea');
     const fileInput = document.getElementById('imagenFile');
     const dataInput = document.getElementById('imagenData');
+    const pasteButton = document.getElementById('pasteImageButton');
+    const pasteStatus = document.getElementById('pasteStatus');
 
     if (dropArea && fileInput) {
       dropArea.addEventListener('click', function() {
@@ -271,6 +401,9 @@
           reader.onload = function(e) {
             dataInput.value = '';
             updateImagePreview(e.target.result);
+            if (pasteStatus) {
+              pasteStatus.textContent = 'Imagen cargada desde archivo.';
+            }
           };
           reader.readAsDataURL(files[0]);
         }
@@ -282,12 +415,21 @@
           reader.onload = function(e) {
             dataInput.value = '';
             updateImagePreview(e.target.result);
+            if (pasteStatus) {
+              pasteStatus.textContent = 'Imagen cargada desde archivo.';
+            }
           };
           reader.readAsDataURL(fileInput.files[0]);
         } else {
           updateImagePreview(null);
         }
       });
+
+      if (pasteButton) {
+        pasteButton.addEventListener('click', function() {
+          pasteClipboardImage();
+        });
+      }
 
       dropArea.addEventListener('paste', function(event) {
         const items = event.clipboardData?.items;
@@ -307,6 +449,9 @@
                   fileInput.value = null;
                 }
                 updateImagePreview(e.target.result);
+                if (pasteStatus) {
+                  pasteStatus.textContent = 'Imagen pegada desde el portapapeles.';
+                }
               };
               reader.readAsDataURL(blob);
               event.preventDefault();
@@ -316,6 +461,20 @@
       });
     }
 
+    const prevBtn = document.getElementById('prevProductsBtn');
+    const nextBtn = document.getElementById('nextProductsBtn');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function() {
+        changeProductPage(-1);
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function() {
+        changeProductPage(1);
+      });
+    }
+
+    renderProductPage(1);
     updateUserDisplay();
     updateCartBadge();
   });
