@@ -35,6 +35,7 @@ CREATE TABLE Productos (
     id_vendedor INT NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
+    categoria VARCHAR(80) NOT NULL DEFAULT 'General',
     precio DECIMAL(10,2) NOT NULL,
     stock INT DEFAULT 0,
     imagen_url VARCHAR(255),

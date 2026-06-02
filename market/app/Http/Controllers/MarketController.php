@@ -26,7 +26,11 @@ class MarketController extends Controller
 
         if ($request->has('search')) {
             $search = $request->input('search');
-            $query->where('p.nombre', 'like', "%$search%");
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('p.nombre', 'like', "%$search%")
+                    ->orWhere('p.descripcion', 'like', "%$search%")
+                    ->orWhere('p.categoria', 'like', "%$search%");
+            });
         }
 
         $productos = $query->get();

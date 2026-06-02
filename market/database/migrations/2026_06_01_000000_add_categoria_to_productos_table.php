@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         if (!Schema::hasColumn('productos', 'categoria')) {
             Schema::table('productos', function (Blueprint $table) {
-                $table->string('categoria', 80)->nullable();
+                $table->string('categoria', 80)->default('General');
             });
         }
     }

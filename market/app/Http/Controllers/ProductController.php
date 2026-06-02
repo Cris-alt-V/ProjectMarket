@@ -19,6 +19,7 @@ class ProductController extends Controller
                 'p.id_producto',
                 'p.nombre',
                 'p.descripcion',
+                'p.categoria',
                 'p.precio',
                 'p.stock',
                 'p.imagen_url',
@@ -32,6 +33,7 @@ class ProductController extends Controller
                 return $query->where(function ($subQuery) use ($searchTerm) {
                     $subQuery->whereRaw('LOWER(p.nombre) LIKE ?', [$searchTerm])
                         ->orWhereRaw('LOWER(p.descripcion) LIKE ?', [$searchTerm])
+                        ->orWhereRaw('LOWER(p.categoria) LIKE ?', [$searchTerm])
                         ->orWhereRaw('LOWER(v.nombre_negocio) LIKE ?', [$searchTerm]);
                 });
             })
@@ -63,6 +65,7 @@ class ProductController extends Controller
                 'p.id_producto',
                 'p.nombre',
                 'p.descripcion',
+                'p.categoria',
                 'p.precio',
                 'p.stock',
                 'p.imagen_url',

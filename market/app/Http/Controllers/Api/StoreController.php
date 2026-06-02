@@ -35,6 +35,7 @@ class StoreController extends Controller
                 'id' => $product->id_producto,
                 'nombre' => $product->nombre,
                 'descripcion' => $product->descripcion,
+                'categoria' => $product->categoria ?? 'General',
                 'precio' => (float) $product->precio,
                 'stock' => $product->stock,
                 'imagen_url' => $product->imagen_url,
@@ -55,6 +56,7 @@ class StoreController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:100',
             'descripcion' => 'nullable|string',
+            'categoria' => 'required|string|max:80',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'imagen_url' => 'nullable|string',
@@ -71,6 +73,7 @@ class StoreController extends Controller
             'id_vendedor' => $vendor->id_vendedor,
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
+            'categoria' => $request->categoria,
             'precio' => $request->precio,
             'stock' => $request->stock,
             'imagen_url' => $imagen,
@@ -99,6 +102,7 @@ class StoreController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:100',
             'descripcion' => 'nullable|string',
+            'categoria' => 'required|string|max:80',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'imagen_url' => 'nullable|string',
@@ -109,6 +113,7 @@ class StoreController extends Controller
         DB::table('productos')->where('id_producto', $id)->update([
             'nombre' => $request->nombre,
             'descripcion' => $request->descripcion,
+            'categoria' => $request->categoria,
             'precio' => $request->precio,
             'stock' => $request->stock,
             'imagen_url' => $imagen,
