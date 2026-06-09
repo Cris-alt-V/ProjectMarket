@@ -1,11 +1,9 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Mis Comercios - Marketplace Local'); ?>
 
-@section('title', 'Mis Comercios - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <h1 style="margin-bottom: 30px; color: #333;">Gestionar mis Comercios</h1>
 
-  @if (!session('user') || session('user')['tipo_usuario'] !== 'vendedor')
+  <?php if(!session('user') || session('user')['tipo_usuario'] !== 'vendedor'): ?>
     <div id="loginPrompt" style="background: white; border-radius: 8px; padding: 40px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <h2>Por favor inicia sesión</h2>
       <p style="color: #666; margin-bottom: 20px;">Solo los vendedores registrados pueden gestionar sus comercios</p>
@@ -14,7 +12,7 @@
         <a href="/registro?tab=store" class="btn btn-secondary">Registrar Comercio</a>
       </div>
     </div>
-  @else
+  <?php else: ?>
     <div id="storesContent">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px;">
         <h2 style="margin: 0;">Mis Tiendas</h2>
@@ -22,76 +20,79 @@
       </div>
       <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
-          <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">🏪 {{ session('user')['nombre_negocio'] ?? 'Mi Tienda' }}</h3>
-          <p style="margin: 0; opacity: 0.9;">{{ session('user')['descripcion'] ?? 'Descripción no disponible' }}</p>
+          <h3 style="margin: 0 0 10px 0; font-size: 1.5em;">🏪 <?php echo e(session('user')['nombre_negocio'] ?? 'Mi Tienda'); ?></h3>
+          <p style="margin: 0; opacity: 0.9;"><?php echo e(session('user')['descripcion'] ?? 'Descripción no disponible'); ?></p>
         </div>
         <div style="padding: 20px;">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div>
               <label style="color: #666; font-size: 0.9em;">Ubicación</label>
-              <p style="margin: 5px 0; font-weight: bold;">{{ session('user')['ubicacion'] ?? 'No especificada' }}</p>
+              <p style="margin: 5px 0; font-weight: bold;"><?php echo e(session('user')['ubicacion'] ?? 'No especificada'); ?></p>
             </div>
             <div>
               <label style="color: #666; font-size: 0.9em;">Correo</label>
-              <p style="margin: 5px 0; font-weight: bold;">{{ session('user')['correo'] ?? 'No disponible' }}</p>
+              <p style="margin: 5px 0; font-weight: bold;"><?php echo e(session('user')['correo'] ?? 'No disponible'); ?></p>
             </div>
             <div>
               <label style="color: #666; font-size: 0.9em;">Propietario</label>
-              <p style="margin: 5px 0; font-weight: bold;">{{ session('user')['nombre'] ?? 'No disponible' }}</p>
+              <p style="margin: 5px 0; font-weight: bold;"><?php echo e(session('user')['nombre'] ?? 'No disponible'); ?></p>
             </div>
           </div>
         </div>
       </div>
 
       <h3 style="margin-bottom: 20px;">Mis Productos</h3>
-      @if ($productos->count() > 0)
+      <?php if($productos->count() > 0): ?>
         <div id="productosGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-          @foreach ($productos as $producto)
+          <?php $__currentLoopData = $productos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $producto): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div class="product-card-item" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="width: 100%; height: 200px; background: white; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                <img src="{{ $producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : '' }}" alt="{{ $producto->nombre }}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                <img src="<?php echo e($producto->imagen_url ? (\Illuminate\Support\Str::startsWith($producto->imagen_url, ['http://','https://','//']) ? $producto->imagen_url : asset(ltrim($producto->imagen_url, '/'))) : ''); ?>" alt="<?php echo e($producto->nombre); ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
               </div>
               <div style="padding: 15px;">
-                <h4 style="margin: 0 0 10px 0;">{{ $producto->nombre }}</h4>
-                <p style="color: #666; font-size: 0.9em; margin: 5px 0;">{{ Str::limit($producto->descripcion, 100) }}</p>
+                <h4 style="margin: 0 0 10px 0;"><?php echo e($producto->nombre); ?></h4>
+                <p style="color: #666; font-size: 0.9em; margin: 5px 0;"><?php echo e(Str::limit($producto->descripcion, 100)); ?></p>
                 <div style="margin: 10px 0; font-weight: bold; color: #667eea;">
-                  ${{ number_format($producto->precio, 2) }}
+                  $<?php echo e(number_format($producto->precio, 2)); ?>
+
                 </div>
                 <div style="margin: 10px 0; font-size: 0.9em; color: #666;">
-                  Categoría: {{ $producto->categoria ?? 'General' }}
+                  Categoría: <?php echo e($producto->categoria ?? 'General'); ?>
+
                 </div>
                 <div style="margin: 10px 0; font-size: 0.9em; color: #666;">
-                  Stock: {{ $producto->stock }}
+                  Stock: <?php echo e($producto->stock); ?>
+
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                  <button class="btn btn-primary" style="flex: 1;" onclick='editProduct(@json($producto))'>Editar</button>
-                  <form action="/productos/{{ $producto->id_producto }}" method="POST" style="flex: 1;">
-                    @csrf
-                    @method('DELETE')
+                  <button class="btn btn-primary" style="flex: 1;" onclick='editProduct(<?php echo json_encode($producto, 15, 512) ?>)'>Editar</button>
+                  <form action="/productos/<?php echo e($producto->id_producto); ?>" method="POST" style="flex: 1;">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('DELETE'); ?>
                     <button type="submit" class="btn btn-danger" style="width: 100%;" onclick="return confirm('¿Estás seguro?')">Eliminar</button>
                   </form>
                 </div>
               </div>
             </div>
-          @endforeach
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
         <div id="productPagination" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 25px;">
           <button type="button" id="prevProductsBtn" class="btn btn-secondary">← Anteriores</button>
           <span id="productPageInfo" style="color: #666; font-size: 0.95em;">Página 1</span>
           <button type="button" id="nextProductsBtn" class="btn btn-secondary">Siguientes →</button>
         </div>
-      @else
+      <?php else: ?>
         <div style="background: #f0f0f0; border-radius: 8px; padding: 30px; text-align: center;">
           <p style="color: #666; margin: 0;">No tienes productos publicados. ¡Comienza ahora!</p>
         </div>
-      @endif
+      <?php endif; ?>
 
       <!-- Formulario agregar producto -->
       <div id="productModalOverlay" style="display: none; position: fixed; inset: 0; z-index: 11000; background: rgba(0, 0, 0, 0.55); align-items: flex-start; justify-content: center; padding: 90px 12px 12px 12px; overflow-y: auto;">
         <div id="formAgregarProducto" style="width: 100%; max-width: 620px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 14px 50px rgba(0,0,0,0.25); position: relative; max-height: calc(100vh - 40px); overflow-y: auto;">
           <button type="button" onclick="cancelProductForm()" style="position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: 50%; border: none; background: #ccc; color: #333; font-size: 20px; line-height: 1; cursor: pointer;">×</button>
           <form id="productForm" action="/productos/crear" method="POST" enctype="multipart/form-data" style="display: grid; gap: 15px;">
-            @csrf
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="_method" id="formMethod" value="POST">
             <input type="hidden" name="imagen_url" id="imagenUrl" value="">
             <input type="hidden" id="editingProductId" value="">
@@ -152,10 +153,10 @@
         </form>
       </div>
     </div>
-  @endif
-@endsection
+  <?php endif; ?>
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   function showAddProductForm() {
     const form = document.getElementById('productForm');
@@ -490,4 +491,5 @@
     updateCartBadge();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\ASUS\Desktop\aritomarket\ProjectMarket\market\resources\views/mis-comercios.blade.php ENDPATH**/ ?>

@@ -15189,3 +15189,20 @@ LINE 1: ...oductos\" (\"id_vendedor\", \"nombre\", \"descripcion\", \"categoria.
 #52 C:/Users/crist/OneDrive/Desktop/casdq/ProjectMarket/market/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('C://Users//crist//...')
 #53 {main}
 "} 
+[2026-06-09 16:55:00] local.ERROR: Command "server" is not defined.
+
+Did you mean one of these?
+    make:observer
+    serve {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"server\" is not defined.
+
+Did you mean one of these?
+    make:observer
+    serve at C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find()
+#1 C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun()
+#2 C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run()
+#3 C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle()
+#4 C:/Users/ASUS/Desktop/aritomarket/ProjectMarket/market/artisan(16): Illuminate/Foundation/Application->handleCommand()
+#5 {main}
+"} 

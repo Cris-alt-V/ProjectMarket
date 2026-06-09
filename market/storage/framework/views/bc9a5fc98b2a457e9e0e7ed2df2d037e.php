@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Mensajes - Marketplace Local'); ?>
 
-@section('title', 'Mensajes - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <section class="messages-page">
     <div class="messages-shell">
       <aside class="messages-sidebar">
@@ -39,10 +37,10 @@
       </section>
     </div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
-<script src="{{ rtrim($chatServerUrl, '/') }}/socket.io/socket.io.js"></script>
+<?php $__env->startPush('scripts'); ?>
+<script src="<?php echo e(rtrim($chatServerUrl, '/')); ?>/socket.io/socket.io.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     document.body.classList.add('messages-body');
@@ -57,7 +55,7 @@
     window.addEventListener('resize', updateMessagesViewport);
 
     const currentUser = window.currentSessionUser;
-    const chatServerUrl = @json($chatServerUrl);
+    const chatServerUrl = <?php echo json_encode($chatServerUrl, 15, 512) ?>;
     const conversationList = document.getElementById('conversationList');
     const chatWelcome = document.getElementById('chatWelcome');
     const chatRoom = document.getElementById('chatRoom');
@@ -328,4 +326,6 @@
     });
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\ASUS\Desktop\aritomarket\ProjectMarket\market\resources\views/mensajes.blade.php ENDPATH**/ ?>

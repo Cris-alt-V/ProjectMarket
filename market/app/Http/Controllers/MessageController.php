@@ -150,7 +150,7 @@ class MessageController extends Controller
                     $subQuery->where('sender_id', $partnerId)->where('receiver_id', $userId);
                 });
             })
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         Message::whereIn('id', $messages->pluck('id'))
@@ -178,7 +178,7 @@ class MessageController extends Controller
             ->where(function ($query) use ($userId) {
                 $query->where('sender_id', $userId)->orWhere('receiver_id', $userId);
             })
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         Message::whereIn('id', $messages->pluck('id'))
