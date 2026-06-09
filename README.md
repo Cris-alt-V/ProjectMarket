@@ -42,3 +42,49 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO market_user;
 Se debe haber creado antes la bd y ejecutado la migracion
 
 php artisan migrate:fresh
+
+## Instalación de dependencias para chat en tiempo real
+
+1. Instalar Node.js y npm.
+2. Crear carpeta `server-chat` dentro de `ProjectMarket`.
+3. Ejecutar `npm init -y`.
+4. Instalar dependencias:
+   - `npm install express socket.io pg`
+   - `npm install nodemon --save-dev` (opcional para desarrollo).
+5. Iniciar servidor con `node index.js` o `nodemon index.js`.
+
+### Configuración del servidor de chat
+
+La carpeta `server-chat` ya contiene el código del servidor WebSocket. Antes de iniciarlo, configura las variables de entorno necesarias para conectarlo a Postgres:
+
+```env
+PORT=3001
+CLIENT_ORIGIN=http://localhost:8000
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=AristoMarket
+DB_USERNAME=market_user
+DB_PASSWORD=market123
+```
+
+También puedes usar `DATABASE_URL` si prefieres una sola cadena de conexión.
+
+### Uso
+
+- Ejecutar las migraciones de Laravel para crear o actualizar la tabla `messages`:
+
+```bash
+cd market
+php artisan migrate
+```
+
+- Ejecutar el servidor WebSocket en la carpeta `server-chat`:
+
+```bash
+cd ../server-chat
+npm install
+npm start
+```
+
+- Abrir el proyecto en navegador y acceder al apartado "Mensajes".
+- Probar el chat en tiempo real entre comprador y vendedor.

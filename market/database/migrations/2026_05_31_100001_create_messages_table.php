@@ -9,12 +9,12 @@ return new class extends Migration {
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('conversation_id')->index();
             $table->unsignedBigInteger('sender_id')->index();
             $table->unsignedBigInteger('receiver_id')->index();
-            $table->string('subject')->nullable();
             $table->text('body');
             $table->timestamp('read_at')->nullable();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

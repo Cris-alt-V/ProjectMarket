@@ -26,20 +26,20 @@
           <p id="storeDescription">{{ $comercio->descripcion ?? 'Descripción no disponible' }}</p>
         </div>
         @if(session('user') && session('user')['id_usuario'] !== $producto->id_vendedor)
-          <div id="productChatBox" style="background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee;">
-            <h3 style="margin: 0 0 12px 0;">Chat con vendedor</h3>
-            <div id="productChatMessages" style="height: 220px; overflow-y: auto; background: #f8f8f8; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-              <p style="color:#666; margin:0;">Cargando mensajes...</p>
-            </div>
-            <form id="productChatForm" style="display: grid; gap: 10px;">
-              <textarea id="productChatBody" rows="3" maxlength="1000" placeholder="Escribe tu mensaje..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea>
-              <button type="submit" class="btn btn-primary">Enviar mensaje</button>
-            </form>
+          <div class="seller-contact-card">
+            <h3>Ponerse en contacto con el vendedor</h3>
+            <p>Consulta disponibilidad, detalles del producto o coordina la compra directamente con el comercio.</p>
+            <a
+              class="btn btn-primary"
+              href="{{ url('/mensajes') }}?product_id={{ $producto->id_producto }}&receiver_id={{ $producto->id_vendedor }}&product_name={{ urlencode($producto->nombre) }}&partner_name={{ urlencode($comercio->nombre_negocio) }}"
+            >
+              Ponerse en contacto con el vendedor
+            </a>
           </div>
         @elseif(!session('user'))
-          <div style="background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee;">
-            <h3 style="margin: 0 0 8px 0;">Chat con vendedor</h3>
-            <p style="color:#666; margin:0;"><a href="/registro" style="color:#667eea; font-weight:600;">Inicia sesion</a> para consultar este producto.</p>
+          <div class="seller-contact-card">
+            <h3>Ponerse en contacto con el vendedor</h3>
+            <p><a href="/registro">Inicia sesion</a> para consultar este producto con el vendedor.</p>
           </div>
         @endif
         <div class="quantity-selector" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
@@ -173,89 +173,6 @@
 
     updateUserDisplay();
     updateCartBadge();
-
-    const chatForm = document.getElementById('productChatForm');
-    const chatMessages = document.getElementById('productChatMessages');
-    const chatBody = document.getElementById('productChatBody');
-
-    function escapeHtml(value) {
-      return String(value || '').replace(/[&<>"']/g, function(char) {
-        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
-      });
-    }
-
-    function renderProductChat(messages) {
-      if (!chatMessages) {
-        return;
-      }
-
-      if (!messages || messages.length === 0) {
-        chatMessages.innerHTML = '<p style="color:#666; margin:0;">Aun no hay mensajes. Envia la primera consulta.</p>';
-        return;
-      }
-
-      chatMessages.innerHTML = messages.map(message => `
-        <div style="display:flex; justify-content:${message.is_mine ? 'flex-end' : 'flex-start'}; margin-bottom:10px;">
-          <div style="max-width:75%; background:${message.is_mine ? '#667eea' : '#fff'}; color:${message.is_mine ? '#fff' : '#333'}; border:1px solid ${message.is_mine ? '#667eea' : '#e5e5e5'}; border-radius:8px; padding:10px;">
-            <div>${escapeHtml(message.body)}</div>
-            <div style="font-size:11px; opacity:.75; margin-top:6px;">${new Date(message.created_at).toLocaleString()}</div>
-          </div>
-        </div>
-      `).join('');
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function loadProductChat() {
-      if (!chatMessages) {
-        return;
-      }
-
-      fetch('/messages/product/' + product.id, {
-        headers: { 'Accept': 'application/json' },
-        credentials: 'same-origin',
-      })
-        .then(response => response.json())
-        .then(data => renderProductChat(data.messages || []))
-        .catch(() => {
-          chatMessages.innerHTML = '<p style="color:#666; margin:0;">No se pudieron cargar los mensajes.</p>';
-        });
-    }
-
-    if (chatForm) {
-      loadProductChat();
-      setInterval(loadProductChat, 5000);
-
-      chatForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const body = chatBody.value.trim();
-        if (!body) {
-          return;
-        }
-
-        fetch('/messages/send', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          },
-          body: JSON.stringify({
-            receiver_id: productSellerId,
-            product_id: product.id,
-            body: body,
-          }),
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('No se pudo enviar el mensaje');
-            }
-            chatBody.value = '';
-            loadProductChat();
-          })
-          .catch(() => MarketplaceApp.showNotification('No se pudo enviar el mensaje.', 'error'));
-      });
-    }
 
     // --- Review stars and AJAX submission ---
     const starInit = (function() {

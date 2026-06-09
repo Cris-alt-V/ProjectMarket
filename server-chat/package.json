@@ -1,0 +1,26 @@
+{
+  "name": "server-chat",
+  "version": "1.0.0",
+  "description": "Servidor WebSocket para chat en tiempo real de ProjectMarket.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "socket.io",
+    "chat",
+    "postgres"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

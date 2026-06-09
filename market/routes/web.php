@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\MarketController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
@@ -16,9 +17,11 @@ Route::get('/search/suggestions', [MarketController::class, 'searchSuggestions']
 Route::post('/producto/{id}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->middleware('auth.session');
 
 // Messages between users
-Route::post('/messages/send', [\App\Http\Controllers\MessageController::class, 'send'])->middleware('auth.session');
-Route::get('/messages/conversations', [\App\Http\Controllers\MessageController::class, 'conversations'])->middleware('auth.session');
-Route::get('/messages/product/{id}', [\App\Http\Controllers\MessageController::class, 'productThread'])->middleware('auth.session');
+Route::get('/mensajes', [MessageController::class, 'index'])->middleware('auth.session');
+Route::post('/messages/send', [MessageController::class, 'send'])->middleware('auth.session');
+Route::get('/messages/conversations', [MessageController::class, 'conversations'])->middleware('auth.session');
+Route::get('/messages/conversation/{conversationId}', [MessageController::class, 'conversation'])->middleware('auth.session');
+Route::get('/messages/product/{id}', [MessageController::class, 'productThread'])->middleware('auth.session');
 
 // Shipping calculation API
 Route::post('/shipping/calculate', [\App\Http\Controllers\ShippingController::class, 'calculate']);

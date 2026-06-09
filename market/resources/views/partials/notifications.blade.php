@@ -1,12 +1,16 @@
-<div class="notifications-wrapper" style="position: relative; display: inline-block; margin-right: 12px;">
-    <button id="notificationsToggle" style="background:none;border:none;cursor:pointer;position:relative;font-size:18px;">
-        🔔 <span id="notificationBadge" style="background:#e53e3e;color:#fff;border-radius:12px;padding:2px 6px;font-size:12px;display:none;position:absolute;top:-8px;right:-8px;">0</span>
+<div class="notifications-wrapper">
+    <button id="notificationsToggle" class="notifications-toggle" type="button" aria-label="Ver notificaciones">
+        <span class="notifications-bell">N</span>
+        <span id="notificationBadge" class="notifications-badge">0</span>
     </button>
 
-    <div id="notificationsDropdown" style="display:none; position:absolute; right:0; top:36px; width:320px; max-height:420px; overflow:auto; background:#fff; border:1px solid #eee; box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:1000;">
-        <div style="padding:12px; border-bottom:1px solid #f2f2f2; font-weight:700;">Notificaciones</div>
-        <div id="notificationsList" style="padding:8px;"></div>
-        <div style="padding:8px; border-top:1px solid #f2f2f2; text-align:center;"><small style="color:#666;">Haz clic en una notificación para marcarla como leída</small></div>
+    <div id="notificationsDropdown" class="notifications-dropdown">
+        <div class="notifications-header">
+            <strong>Notificaciones</strong>
+            <small>Mensajes y actividad reciente</small>
+        </div>
+        <div id="notificationsList" class="notifications-list"></div>
+        <div class="notifications-footer">Haz clic para marcar como leida</div>
     </div>
 </div>
 
@@ -17,44 +21,55 @@
         const badge = document.getElementById('notificationBadge');
         const list = document.getElementById('notificationsList');
 
+        function formatDate(value) {
+            return value ? new Date(value).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '';
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, function(char) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
+            });
+        }
+
         function renderNotifications(data){
             const { unread, notifications = [] } = data;
             const notificationList = Array.isArray(notifications) ? notifications : [];
-            if(unread && unread > 0){
-                badge.style.display = 'inline-block';
-                badge.textContent = unread;
-            } else {
-                badge.style.display = 'none';
-            }
+            badge.style.display = unread && unread > 0 ? 'inline-flex' : 'none';
+            badge.textContent = unread || 0;
 
             list.innerHTML = '';
             if(notificationList.length === 0){
-                list.innerHTML = '<div style="padding:12px;color:#666">No hay notificaciones.</div>';
+                list.innerHTML = '<div class="notifications-empty">No hay notificaciones.</div>';
                 return;
             }
 
             notificationList.forEach(n => {
-                const item = document.createElement('div');
-                item.style.padding = '10px';
-                item.style.borderBottom = '1px solid #f5f5f5';
-                item.style.cursor = 'pointer';
-                if(!n.read_at){ item.style.background = '#f9fbff'; }
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'notification-item' + (!n.read_at ? ' unread' : '');
 
-                let data = n.data;
-                if (typeof data === 'string') {
-                    try {
-                        data = JSON.parse(data);
-                    } catch (e) {
-                        data = { message: data };
-                    }
-                }
-                data = data || {};
+                item.innerHTML = `
+                    <span class="notification-icon">${escapeHtml(n.icon || 'NOT')}</span>
+                    <span class="notification-copy">
+                        <strong>${escapeHtml(n.title || 'Notificacion')}</strong>
+                        <span>${escapeHtml(n.body || n.text || 'Tienes una nueva notificacion.')}</span>
+                        <small>${escapeHtml(n.meta || '')}${n.meta ? ' - ' : ''}${escapeHtml(formatDate(n.created_at))}</small>
+                    </span>
+                `;
 
-                const text = n.text || data.message || (data.producto_nombre ? `Hay una actualización en tu producto ${data.producto_nombre}` : (n.type || 'Notificación'));
-                item.innerHTML = `<div style="font-weight:600">${text}</div><div style="font-size:12px;color:#666;margin-top:4px">${new Date(n.created_at).toLocaleString()}</div>`;
                 item.addEventListener('click', function(){
-                    fetch('/notifications/' + n.id + '/read', { method: 'POST', headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
-                        .then(()=>{ fetchAndRender(); });
+                    fetch('/notifications/' + n.id + '/read', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                        },
+                    }).then(() => {
+                        fetchAndRender();
+                        if (n.url) {
+                            window.location.href = n.url;
+                        }
+                    });
                 });
                 list.appendChild(item);
             });
@@ -63,24 +78,28 @@
         function fetchAndRender(){
             fetch('/notifications', {
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                },
+                headers: { 'Accept': 'application/json' },
             })
                 .then(r => r.json())
                 .then(data => renderNotifications(data))
                 .catch(() => {
-                    list.innerHTML = '<div style="padding:12px;color:#666">Error cargando notificaciones.</div>';
+                    list.innerHTML = '<div class="notifications-empty">Error cargando notificaciones.</div>';
                     badge.style.display = 'none';
                 });
         }
 
-        toggle.addEventListener('click', function(){
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-            if(dropdown.style.display === 'block') fetchAndRender();
+        toggle.addEventListener('click', function(event){
+            event.stopPropagation();
+            dropdown.classList.toggle('active');
+            if(dropdown.classList.contains('active')) fetchAndRender();
         });
 
-        // initial background fetch after page load
+        document.addEventListener('click', function(event) {
+            if (!dropdown.contains(event.target) && !toggle.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function(){
             if(window.currentSessionUser){ fetchAndRender(); }
         });

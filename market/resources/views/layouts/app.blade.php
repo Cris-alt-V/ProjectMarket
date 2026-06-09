@@ -61,6 +61,9 @@
                 <a href="{{ url('/') }}" class="{{ Request::is('/') ? 'active' : '' }}">Inicio</a>
                 <a href="{{ url('/productos') }}" class="{{ Request::is('productos*') ? 'active' : '' }}">Explorar</a>
                 <a href="{{ url('/comercios') }}" class="{{ Request::is('comercios*') ? 'active' : '' }}">Comercios</a>
+                @if(session('user'))
+                    <a href="{{ url('/mensajes') }}" class="{{ Request::is('mensajes*') ? 'active' : '' }}">Mensajes</a>
+                @endif
                 <a href="{{ url('/carrito') }}" class="{{ Request::is('carrito') ? 'active' : '' }}">Carrito</a>
                 <a href="{{ url('/acerca-de') }}" class="{{ Request::is('acerca-de') ? 'active' : '' }}">Acerca de</a>
             </nav>

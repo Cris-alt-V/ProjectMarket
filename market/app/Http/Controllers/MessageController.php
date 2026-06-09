@@ -10,6 +10,18 @@ use App\Models\Message;
 
 class MessageController extends Controller
 {
+    public function index()
+    {
+        $user = session('user');
+        if (!$user) {
+            return redirect('/registro')->with('error', 'Debes iniciar sesion para ver tus mensajes.');
+        }
+
+        return view('mensajes', [
+            'chatServerUrl' => env('CHAT_SERVER_URL', 'http://localhost:3001'),
+        ]);
+    }
+
     private function productForChat(int $productId)
     {
         return DB::table('productos as p')
@@ -19,9 +31,25 @@ class MessageController extends Controller
             ->first();
     }
 
-    private function canReadMessage($message, int $userId): bool
+    private function conversationId(int $senderId, int $receiverId, ?int $productId): int
     {
-        return (int) $message->sender_id === $userId || (int) $message->receiver_id === $userId;
+        $existing = DB::table('messages')
+            ->where(function ($query) use ($senderId, $receiverId) {
+                $query->where(function ($subQuery) use ($senderId, $receiverId) {
+                    $subQuery->where('sender_id', $senderId)->where('receiver_id', $receiverId);
+                })->orWhere(function ($subQuery) use ($senderId, $receiverId) {
+                    $subQuery->where('sender_id', $receiverId)->where('receiver_id', $senderId);
+                });
+            })
+            ->when($productId, fn ($query) => $query->where('product_id', $productId), fn ($query) => $query->whereNull('product_id'))
+            ->orderBy('conversation_id')
+            ->value('conversation_id');
+
+        if ($existing) {
+            return (int) $existing;
+        }
+
+        return (int) DB::table('messages')->max('conversation_id') + 1;
     }
 
     public function send(Request $request)
@@ -34,7 +62,6 @@ class MessageController extends Controller
         $data = $request->validate([
             'receiver_id' => 'required|integer',
             'product_id' => 'nullable|integer',
-            'subject' => 'nullable|string|max:200',
             'body' => 'required|string|max:5000',
         ]);
 
@@ -56,11 +83,16 @@ class MessageController extends Controller
             }
         }
 
+        $senderId = (int) $user['id_usuario'];
+        $receiverId = (int) $data['receiver_id'];
+        $productId = isset($data['product_id']) ? (int) $data['product_id'] : null;
+        $conversationId = $this->conversationId($senderId, $receiverId, $productId);
+
         $message = Message::create([
-            'sender_id' => $user['id_usuario'] ?? null,
-            'receiver_id' => $data['receiver_id'],
-            'product_id' => $data['product_id'] ?? null,
-            'subject' => $data['subject'] ?? ($product ? 'Producto: ' . $product->nombre : null),
+            'conversation_id' => $conversationId,
+            'sender_id' => $senderId,
+            'receiver_id' => $receiverId,
+            'product_id' => $productId,
             'body' => $data['body'],
         ]);
 
@@ -73,7 +105,8 @@ class MessageController extends Controller
             'data' => json_encode([
                 'message_id' => $message->id,
                 'product_id' => $data['product_id'] ?? null,
-                'sender_id' => $user['id_usuario'] ?? null,
+                'product_name' => $product?->nombre,
+                'sender_id' => $senderId,
                 'message' => $product ? 'Nuevo mensaje sobre ' . $product->nombre : 'Has recibido un nuevo mensaje',
             ]),
             'created_at' => now(),
@@ -83,7 +116,7 @@ class MessageController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Mensaje enviado.',
-                'chat' => $this->formatMessage($message, (int) $user['id_usuario']),
+                'chat' => $this->formatMessage($message, $senderId),
             ]);
         }
 
@@ -128,6 +161,33 @@ class MessageController extends Controller
         return response()->json([
             'product' => $product,
             'partner_id' => $partnerId,
+            'conversation_id' => $messages->first()?->conversation_id,
+            'messages' => $messages->map(fn ($message) => $this->formatMessage($message, $userId))->values(),
+        ]);
+    }
+
+    public function conversation($conversationId)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $userId = (int) $user['id_usuario'];
+        $messages = Message::where('conversation_id', $conversationId)
+            ->where(function ($query) use ($userId) {
+                $query->where('sender_id', $userId)->orWhere('receiver_id', $userId);
+            })
+            ->orderBy('created_at')
+            ->get();
+
+        Message::whereIn('id', $messages->pluck('id'))
+            ->where('receiver_id', $userId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'conversation_id' => (int) $conversationId,
             'messages' => $messages->map(fn ($message) => $this->formatMessage($message, $userId))->values(),
         ]);
     }
@@ -159,13 +219,14 @@ class MessageController extends Controller
         $conversations = [];
         foreach ($messages as $message) {
             $partnerId = (int) $message->sender_id === $userId ? (int) $message->receiver_id : (int) $message->sender_id;
-            $key = ($message->product_id ?: 'general') . ':' . $partnerId;
+            $key = (string) $message->conversation_id;
 
             if (isset($conversations[$key])) {
                 continue;
             }
 
             $conversations[$key] = [
+                'conversation_id' => (int) $message->conversation_id,
                 'product_id' => $message->product_id,
                 'product_name' => $message->product_name ?: 'Conversacion',
                 'partner_id' => $partnerId,
@@ -188,6 +249,7 @@ class MessageController extends Controller
     {
         return [
             'id' => $message->id,
+            'conversation_id' => $message->conversation_id,
             'sender_id' => $message->sender_id,
             'receiver_id' => $message->receiver_id,
             'product_id' => $message->product_id,

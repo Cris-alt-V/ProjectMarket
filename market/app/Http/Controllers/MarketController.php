@@ -228,16 +228,16 @@ class MarketController extends Controller
             return redirect('/registro');
         }
 
-        $type = $user['tipo_usuario'] === 'vendedor' ? 'vendedor' : 'user';
+        $types = $user['tipo_usuario'] === 'vendedor' ? ['vendedor', 'user'] : ['user'];
         $notifications = DB::table('notifications')
-            ->where('notifiable_type', $type)
+            ->whereIn('notifiable_type', $types)
             ->where('notifiable_id', $user['id_usuario'])
             ->orderBy('created_at', 'desc')
             ->limit(50)
             ->get();
 
         $unreadCount = DB::table('notifications')
-            ->where('notifiable_type', $type)
+            ->whereIn('notifiable_type', $types)
             ->where('notifiable_id', $user['id_usuario'])
             ->whereNull('read_at')
             ->count();
