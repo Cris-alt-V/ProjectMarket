@@ -12,6 +12,16 @@
     .product-card-item {
       min-height: auto;
     }
+    .product-card-item .product-description {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.45;
+      min-height: calc(1.45em * 3);
+    }
     @media (max-width: 980px) {
       .products-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -180,6 +190,11 @@
   let currentProductPage = 1;
   const productsPerPage = 15;
 
+  function limitText(text, maxLength = 120) {
+    const value = String(text || '');
+    return value.length > maxLength ? value.slice(0, maxLength).trimEnd() + '...' : value;
+  }
+
   function createProductCard(product) {
     const comercio = MarketplaceApp.getComercioById(product.comercioId) || { nombre: 'Comercio local' };
       const isOutOfStock = Number(product.stock) <= 0;
@@ -193,7 +208,7 @@
           <div class="product-category">Categoría: ${product.categoria}</div>
           <h3 class="product-name">${product.nombre}</h3>
           <div class="product-store">🏪 ${comercio.nombre}</div>
-          <div class="product-description">${product.descripcion}</div>
+          <div class="product-description">${limitText(product.descripcion)}</div>
           <div class="product-meta" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;color:#555;font-size:0.95em;">
             <span>Existencias: ${stockLabel}</span>
           </div>

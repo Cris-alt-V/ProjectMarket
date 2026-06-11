@@ -88,6 +88,14 @@
     return Number(item.quantity ?? item.cantidad ?? 1);
   }
 
+  function getCartItemAvailableStock(item) {
+    const appStock = MarketplaceApp.getAvailableStock(item.id);
+    if (appStock > 0) {
+      return appStock;
+    }
+    return Number(item.stock || 0);
+  }
+
   function renderCart() {
     const cart = MarketplaceApp.getCart();
     const container = document.getElementById('cartItemsContainer');
@@ -187,7 +195,7 @@
 
     if (item) {
       const currentQuantity = getCartItemQuantity(item);
-      const availableStock = MarketplaceApp.getAvailableStock(item.id);
+      const availableStock = getCartItemAvailableStock(item);
       const nextQuantity = Math.min(Math.max(1, currentQuantity + delta), availableStock);
       if (nextQuantity !== currentQuantity + delta) {
         MarketplaceApp.showNotification(`Solo hay ${availableStock} unidades disponibles.`, 'error');
@@ -205,7 +213,7 @@
 
     if (item) {
       const requestedQuantity = Math.max(1, parseInt(quantity, 10) || 1);
-      const availableStock = MarketplaceApp.getAvailableStock(item.id);
+      const availableStock = getCartItemAvailableStock(item);
       item.quantity = Math.min(requestedQuantity, availableStock);
       if (requestedQuantity > availableStock) {
         MarketplaceApp.showNotification(`Solo quedan ${availableStock} unidades disponibles.`, 'error');
