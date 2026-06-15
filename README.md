@@ -88,3 +88,20 @@ npm start
 
 - Abrir el proyecto en navegador y acceder al apartado "Mensajes".
 - Probar el chat en tiempo real entre comprador y vendedor.
+
+
+Nombre del proyecto:
+
+Aristo Market
+
+El proyecto Aristo Market es una plataforma de comercio electrónico diseñada para facilitar la interacción entre compradores y vendedores dentro de un entorno digital moderno. Su desarrollo integra funcionalidades clave como el sistema de reseñas con calificaciones en estrellas, la aplicación de cupones promocionales que generan descuentos, el cálculo automático de impuestos en las compras y un apartado visual mejorado para el registro e inicio de sesión. Además, se han realizado pruebas que garantizan la persistencia de datos, la correcta validación de entradas y la actualización dinámica de la información en tiempo real, lo que convierte a Aristo Market en un sistema robusto y confiable que refleja las características esenciales de un e‑commerce actual.
+
+Saul Antonio Amaya Umanzor SMSS017024.  
+
+Francisco Javier Hernández Aguirre SMSS068924.  
+
+Yerovi Josué Martínez Gómez SMSS030924.  
+
+Diego Steven Montoya Castro SMSS054024.  
+
+Cristian Alexis Velásquez Hernández SMSS024224.
