@@ -3,13 +3,12 @@
 git clone https://github.com/Cris-alt-V/ProjectMarket.git
 cd ProjectMarket
 git checkout chatdeusuarios
+
 ## Asegurarse de tener una version de php 8.0 o superior para descargar composer
 composer install
+
 ## Asegurarse de tener Node.js superior a 18 junto a npm
 npm install
-
-## correr laravel y ver la visualizacion:
-php artisan serve
 
 ## Configuración Inicial del Entorno
 
@@ -18,7 +17,7 @@ Siga estos pasos para configurar el entorno local y ejecutar las migraciones de 
 ### 1. Configuración del Archivo de Entorno
 Cree o edite el archivo `.env` en la raíz del proyecto e introduzca sus credenciales de acceso local. Asegúrese de especificar el nombre correcto de la base de datos:
 
-```env
+``env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5436
@@ -54,6 +53,11 @@ Se debe haber creado antes la bd y ejecutado la migracion
 
 php artisan migrate:fresh
 
+## correr laravel y ver la visualizacion:
+Antes de ejecutar los siguientes comandos debe de entrar a la carpeta market.
+php artisan serve 
+npm run dev
+
 ## Instalación de dependencias para chat en tiempo real
 
 1. Instalar Node.js y npm.
@@ -63,22 +67,7 @@ php artisan migrate:fresh
    - `npm install express socket.io pg`
    - `npm install nodemon --save-dev` (opcional para desarrollo).
 5. Iniciar servidor con `node index.js` o `nodemon index.js`.
-
-### Configuración del servidor de chat
-
-La carpeta `server-chat` ya contiene el código del servidor WebSocket. Antes de iniciarlo, configura las variables de entorno necesarias para conectarlo a Postgres:
-
-```env
-PORT=3001
-CLIENT_ORIGIN=http://localhost:8000
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=AristoMarket
-DB_USERNAME=market_user
-DB_PASSWORD=market123
-```
-
-También puedes usar `DATABASE_URL` si prefieres una sola cadena de conexión.
+   
 
 ### Uso
 
@@ -100,12 +89,24 @@ npm start
 - Abrir el proyecto en navegador y acceder al apartado "Mensajes".
 - Probar el chat en tiempo real entre comprador y vendedor.
 
+==========Requisitos Finales==========
+### Frameworks en uso
+Laravel → Framework PHP para el backend, encargado de la lógica de negocio, autenticación y conexión con la base de datos.
 
-Nombre del proyecto:
+Vue.js → Framework JavaScript progresivo para el frontend, usado en la interfaz del chat y componentes dinámicos.
 
-Aristo Market
+Socket.IO → Framework de comunicación en tiempo real sobre Node.js, utilizado para enviar y recibir mensajes instantáneamente.            
 
-El proyecto Aristo Market es una plataforma de comercio electrónico diseñada para facilitar la interacción entre compradores y vendedores dentro de un entorno digital moderno. Su desarrollo integra funcionalidades clave como el sistema de reseñas con calificaciones en estrellas, la aplicación de cupones promocionales que generan descuentos, el cálculo automático de impuestos en las compras y un apartado visual mejorado para el registro e inicio de sesión. Además, se han realizado pruebas que garantizan la persistencia de datos, la correcta validación de entradas y la actualización dinámica de la información en tiempo real, lo que convierte a Aristo Market en un sistema robusto y confiable que refleja las características esenciales de un e‑commerce actual.
+### Librerías complementarias
+Composer → Para gestionar dependencias PHP (Laravel y paquetes relacionados).
+
+npm → Para instalar y manejar dependencias de JavaScript como Vue y Socket.IO.
+
+pg → Librería de Node.js para conectar con PostgreSQL en el servidor de WebSocket.
+
+### Nombre del proyecto: Aristo Market
+
+El proyecto Aristo Market es una plataforma de comercio electrónico diseñada para facilitar la visibilidad de los pequeños-medianos e inclusive grandes negocios locales del pais. Su desarrollo integra funcionalidades clave como el sistema de reseñas con calificaciones en estrellas, la aplicación de cupones promocionales que generan descuentos, el cálculo automático de impuestos en las compras y un apartado visual mejorado para el registro e inicio de sesión. Además, se han realizado pruebas que garantizan la persistencia de datos, lo que convierte a Aristo Market en un sistema confiable que refleja las características esenciales de un e‑commerce actual.
 
 Saul Antonio Amaya Umanzor SMSS017024.  
 
