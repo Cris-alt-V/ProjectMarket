@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Carrito de Compras - Marketplace Local'); ?>
 
-@section('title', 'Carrito de Compras - Marketplace Local')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
   <section class="cart-page">
     <h1 class="cart-title">Carrito de Compras</h1>
 
@@ -15,9 +13,9 @@
     </div>
     <div id="paymentModal" class="payment-modal hidden"></div>
   </section>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   const PROMO_CODES = [
     { code: 'Rata 40400', discount: 0.13 },
@@ -497,4 +495,6 @@
     updateCartBadge();
   });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\castr\OneDrive\Desktop\laravel\hola\ProjectMarket\market\resources\views/carrito.blade.php ENDPATH**/ ?>

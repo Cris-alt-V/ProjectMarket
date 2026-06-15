@@ -77,10 +77,10 @@ const MarketplaceApp = {
     }
   },
 
-  getAvailableStock(productId) {
+  getAvailableStock(productId, fallbackStock = 0) {
     const product = this.getProductById(productId);
     if (!product) {
-      return 0;
+      return Number(fallbackStock || 0);
     }
     return Number(product.stock || 0);
   },
