@@ -1,4 +1,15 @@
-Se debe clonar el repositorio de la rama testdb, el commit mas reciente.
+## Indicaciones de instacion del proyecto:
+## clonar el repositorio
+git clone https://github.com/Cris-alt-V/ProjectMarket.git
+cd ProjectMarket
+git checkout chatdeusuarios
+## Asegurarse de tener una version de php 8.0 o superior para descargar composer
+composer install
+## Asegurarse de tener Node.js superior a 18 junto a npm
+npm install
+
+## correr laravel y ver la visualizacion:
+php artisan serve
 
 ## Configuración Inicial del Entorno
 
