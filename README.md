@@ -105,3 +105,11 @@ Yerovi Josué Martínez Gómez SMSS030924. 
 Diego Steven Montoya Castro SMSS054024.  
 
 Cristian Alexis Velásquez Hernández SMSS024224.
+
+============BASE DE DATOS==============
+
+Para este proyecto se empleo el gestor de base de datos "Postgres sql"
+
+Se empleo este gestor gracias a su capacidad de crear modelos relacionales, cosa que para el objetivo del proyecto se adapta
+de manera perfecta permitiendo gestionar de forma excelente los datos. Como por ejemplo el tema de que negocios tiene un vendedor
+, que producto tiene en cada negocio y otros tipos de relaciones. Ademas que postgres es muy fiable para manejar datos y para crear modelos de base de datos escalables como lo puede ser la de este proyecto al querer expandirlo a futuro
